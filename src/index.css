@@ -8,19 +8,20 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* MyDebate.ai Theme - Clean white with green accents */
-    --background: 0 0% 100%; /* Pure White */
-    --foreground: 0 0% 0%; /* Pure Black */
+    /* MyDebate.ai Clean Modern Theme */
+    --background: 0 0% 98%; /* Off-white #F9FAFB */
+    --foreground: 220 13% 9%; /* Dark Gray #111827 */
 
-    --card: 0 0% 100%; /* White cards */
-    --card-foreground: 0 0% 0%; /* Black text on cards */
+    --card: 0 0% 100%; /* Pure white cards */
+    --card-foreground: 220 13% 9%; /* Dark gray text on cards */
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
+    --popover-foreground: 220 13% 9%;
 
-    /* Green Primary */
-    --primary: 142 100% 40%; /* Bright Green #00C853 */
+    /* Vibrant Green Primary */
+    --primary: 142 100% 40%; /* Vibrant Green #00C853 */
     --primary-foreground: 0 0% 100%; /* White text on green */
+    --primary-hover: 142 100% 30%; /* Darker Green #009624 */
     
     --accent: 142 100% 40%; /* Same green for accent */
     --accent-foreground: 0 0% 100%; /* White text on green */
@@ -28,64 +29,58 @@ All colors MUST be HSL.
     --success: 142 100% 40%; /* Green for success */
     --success-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 96%; /* Very light gray */
-    --secondary-foreground: 0 0% 0%; /* Black text */
+    --secondary: 220 13% 91%; /* Light Gray #E5E7EB */
+    --secondary-foreground: 220 13% 9%; /* Dark Gray text */
 
-    --muted: 0 0% 96%; /* Very light gray */
-    --muted-foreground: 0 0% 45%; /* Dark gray text */
+    --muted: 220 13% 96%; /* Very light gray */
+    --muted-foreground: 220 9% 46%; /* Medium gray text */
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 90%; /* Light gray borders */
-    --input: 0 0% 96%; /* Light gray inputs */
+    --border: 220 13% 91%; /* Light gray borders */
+    --input: 220 13% 91%; /* Light gray inputs */
     --ring: 142 100% 40%; /* Green focus ring */
 
     --radius: 1rem;
 
-    /* Clean gradient design tokens */
-    --gradient-hero: linear-gradient(135deg, hsl(142 100% 40%) 0%, hsl(0 0% 100%) 50%, hsl(0 0% 0%) 100%);
+    /* Modern gradient design tokens */
+    --gradient-hero: linear-gradient(135deg, hsl(142 100% 40%) 0%, hsl(0 0% 100%) 50%, hsl(220 13% 9%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(0 0% 98%) 100%);
     --gradient-green: linear-gradient(135deg, hsl(142 100% 40%), hsl(142 100% 50%));
+    --gradient-button: linear-gradient(135deg, hsl(142 100% 40%), hsl(142 100% 30%));
     
-    --shadow-card: 0 8px 32px hsl(0 0% 0% / 0.1);
-    --shadow-hover: 0 12px 40px hsl(142 100% 40% / 0.2);
-    --shadow-glow: 0 0 30px hsl(142 100% 40% / 0.3);
+    --shadow-card: 0 4px 16px hsl(220 13% 9% / 0.08);
+    --shadow-button: 0 2px 8px hsl(142 100% 40% / 0.2);
+    --shadow-hover: 0 8px 24px hsl(142 100% 40% / 0.15);
     
     --animation-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
     --animation-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .dark {
-    /* Dark mode can remain the same since we're already using dark theme */
-    --background: 0 0 0;
-    --foreground: 255 255 255;
-    --card: 10 10 10;
-    --card-foreground: 255 255 255;
-    --popover: 0 0 0;
-    --popover-foreground: 255 255 255;
-    --primary: 194 100 50;
-    --primary-foreground: 0 0 0;
-    --secondary: 0 0 15;
-    --secondary-foreground: 255 255 255;
-    --muted: 0 0 20;
-    --muted-foreground: 0 0 60;
-    --accent: 194 100 50;
-    --accent-foreground: 0 0 0;
-    --destructive: 0 84 60;
-    --destructive-foreground: 255 255 255;
-    --border: 0 0 20;
-    --input: 0 0 20;
-    --ring: 194 100 50;
-    --sidebar-background: 0 0 5;
-    --sidebar-foreground: 255 255 255;
-    --sidebar-primary: 194 100 50;
-    --sidebar-primary-foreground: 0 0 0;
-    --sidebar-accent: 0 0 15;
-    --sidebar-accent-foreground: 255 255 255;
-    --sidebar-border: 0 0 20;
-    --sidebar-ring: 194 100 50;
+    /* Dark mode - keeping same values for consistency */
+    --background: 220 13% 9%;
+    --foreground: 0 0% 98%;
+    --card: 220 13% 11%;
+    --card-foreground: 0 0% 98%;
+    --popover: 220 13% 9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 142 100% 40%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 13% 15%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 220 13% 15%;
+    --muted-foreground: 220 9% 54%;
+    --accent: 142 100% 40%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 15%;
+    --input: 220 13% 15%;
+    --ring: 142 100% 40%;
   }
+
 }
 
 @layer base {
@@ -95,8 +90,9 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-    font-weight: 500;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
   }
 }
 
@@ -116,8 +112,14 @@ All colors MUST be HSL.
     background-clip: text;
   }
   
-  .glow-effect {
-    box-shadow: var(--shadow-glow);
+  .button-gradient {
+    background: var(--gradient-button);
+    box-shadow: var(--shadow-button);
+  }
+  
+  .button-gradient:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-1px);
   }
   
   .card-shadow {
@@ -129,7 +131,7 @@ All colors MUST be HSL.
   }
   
   .card-hover:hover {
-    transform: translateY(-8px) scale(1.02);
+    transform: translateY(-4px);
     box-shadow: var(--shadow-hover);
   }
   

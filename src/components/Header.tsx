@@ -14,7 +14,7 @@ const Header = () => {
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-lg">M</span>
             </div>
-            <span className="text-xl font-bold gradient-text">MyDebate.ai</span>
+            <span className="text-xl font-bold gradient-text font-heading">MyDebate.ai</span>
           </div>
 
           {/* Desktop Navigation */}

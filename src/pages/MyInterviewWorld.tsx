@@ -208,8 +208,8 @@ const MyInterviewWorld = () => {
                 <span className="text-white font-bold text-lg">M</span>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">MyInterview World</h1>
-                <p className="text-sm text-gray-600">Prepare. Practice. Perform.</p>
+                <h1 className="text-xl md:text-2xl font-bold text-gray-900 font-heading">MyInterview World</h1>
+                <p className="text-sm text-gray-600 font-body">Prepare. Practice. Perform.</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">

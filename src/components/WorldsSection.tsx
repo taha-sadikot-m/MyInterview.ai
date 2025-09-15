@@ -40,10 +40,10 @@ const WorldsSection = () => {
                 <div className="text-6xl mb-4 group-hover:animate-bounce">
                   {world.icon}
                 </div>
-                <CardTitle className="text-2xl font-bold text-foreground mb-3">
+                <CardTitle className="text-xl md:text-2xl font-bold text-foreground mb-3 font-heading">
                   {world.title}
                 </CardTitle>
-                <CardDescription className="text-muted-foreground text-base leading-relaxed">
+                <CardDescription className="text-muted-foreground text-sm md:text-base leading-relaxed font-body">
                   {world.subtitle}
                 </CardDescription>
               </CardHeader>
