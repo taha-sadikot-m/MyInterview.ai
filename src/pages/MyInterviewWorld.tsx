@@ -1,95 +1,58 @@
 import { useState } from "react";
+import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import { Mic, Volume2, Send, RotateCcw, Save, ArrowLeft } from "lucide-react";
+import { Mic, Volume2, Send, RotateCcw, Save, Target, CheckCircle, Briefcase, TrendingUp, Award, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-// AI Evaluation System Constants
-const AI_EVALUATION_PROMPT = `You are a senior campus recruiter and panel interviewer.
-Evaluate fresher candidates using real-world hiring signals.
-Be concise, specific, and evidence-based. Avoid generic fluff.
-Always justify ratings using short quotes extracted from the candidate's answers.
+// Companies categorized for better organization
+const COMPANY_CATEGORIES = {
+  "IT Services & Consulting": ["TCS", "Infosys", "Wipro", "HCL", "Accenture"],
+  "Product & Tech": ["Zoho", "Amazon", "Microsoft", "Google", "Adobe"],
+  "Core Engineering": ["L&T", "Bosch", "Hyundai", "Ford", "Ashok Leyland"],
+  "Consulting & Finance": ["Deloitte", "KPMG", "EY", "PwC", "Goldman Sachs", "JP Morgan"],
+  "Startups & Unicorns": ["Flipkart", "Swiggy", "Zomato", "Freshworks"]
+};
 
-Scoring rules:
-- Give competency ratings 1–5 (whole numbers only).
-- Overall recommendation must be one of: "Strong Hire", "Hire", "Leaning No", "No Hire".
-- If evidence is weak, lower the score; do not infer beyond what is spoken/written.
-- Prefer the STAR framework for behavioural answers (Situation, Task, Action, Result).
+const JOB_ROLES = [
+  "Software Engineer", "Data Analyst", "Cloud Engineer", "QA Engineer",
+  "GET (Core branches)",
+  "Consulting Analyst", "Business Analyst"
+];
 
-Output rules:
-- Return ONLY valid JSON matching the provided schema. No extra text.
-- Keep each array item short (≤20 words).
-- If information is missing, set a sensible default and explain in "notes".
+const SUGGESTED_TOPICS = {
+  "Software Engineer": ["DSA", "OOP", "SQL", "REST APIs", "Problem Solving", "Behavioural"],
+  "Data Analyst": ["SQL", "Excel", "Statistics", "Data Visualization", "Communication", "Behavioural"],
+  "Cloud Engineer": ["AWS", "Docker", "CI/CD", "DevOps", "Networking", "Problem Solving"],
+  "QA Engineer": ["Testing", "Automation", "SDLC", "Bug Tracking", "Communication", "Behavioural"],
+  "GET (Core branches)": ["Core Engineering", "Manufacturing", "CAD", "Problem Solving", "Communication", "Behavioural"],
+  "Consulting Analyst": ["Case Studies", "Guesstimates", "Problem Solving", "Communication", "Presentation", "Behavioural"],
+  "Business Analyst": ["Business Strategy", "Data Analysis", "Stakeholder Management", "Communication", "Problem Solving", "Behavioural"]
+};
 
-RUBRIC (fresher interview):
-- Communication: clarity, brevity, vocabulary, confidence
-- StructuredThinkingSTAR: logical flow, STAR usage for behaviourals
-- TechnicalFundamentals: correctness of core concepts for the role
-- ProblemSolving: approach, edge cases, trade-offs
-- CultureOwnership: initiative, ownership mindset, collaboration
-- Coachability: openness to feedback, self-awareness
+// Sample questions for demo
+const SAMPLE_QUESTIONS = [
+  "Tell me about yourself and why you're interested in this role.",
+  "What are your biggest strengths and how do they apply to this position?",
+  "Describe a challenging project you worked on during college.",
+  "Why do you want to work at this company specifically?",
+  "How do you handle pressure and tight deadlines?",
+  "Where do you see yourself in 5 years?"
+];
 
-JSON SCHEMA (strict):
-{
-  "overall": "Strong Hire | Hire | Leaning No | No Hire",
-  "competencies": {
-    "Communication": 1,
-    "StructuredThinkingSTAR": 1,
-    "TechnicalFundamentals": 1,
-    "ProblemSolving": 1,
-    "CultureOwnership": 1,
-    "Coachability": 1
-  },
-  "evidence": ["short quote 1", "short quote 2", "short quote 3"],
-  "strengths": ["...", "...", "..."],
-  "improvements": ["...", "...", "..."],
-  "redFlags": ["..."], 
-  "followUps": ["...", "...", "..."],
-  "actionPlan": [
-    {"day": 1, "task": "..."},
-    {"day": 2, "task": "..."},
-    {"day": 3, "task": "..."},
-    {"day": 4, "task": "..."},
-    {"day": 5, "task": "..."}
-  ],
-  "starReframe": {
-    "before": "1 behavioural answer excerpt (<=30 words)",
-    "after": "Rewrite using STAR in <=60 words"
-  },
-  "atsKeywords": ["role keywords", "skills", "tools"],
-  "score": 0,
-  "notes": "assessor notes"
+type Step = "setup" | "interview" | "feedback";
+
+interface InterviewData {
+  company: string;
+  role: string;
+  questions: string[];
+  answers: string[];
+  currentQuestion: number;
 }
-
-Score:
-- Compute 0–10 as: round( (sum of 6 competencies) / 6 * 2 ).
-- Put the value in "score".
-
-TASK: Evaluate a fresher interview.
-
-CONTEXT:
-- Company: {{company}}
-- Role: {{role}}
-- Mode: interview
-- Topics: {{topicsCsv}}
-- RubricHints: ["Communication","StructuredThinkingSTAR","TechnicalFundamentals","ProblemSolving","CultureOwnership","Coachability"]
-
-QUESTIONS & ANSWERS (in order):
-{{qaContent}}
-
-CONSTRAINTS:
-- Rate ONLY what is evident in the answers.
-- Extract 2–3 short quotes from the answers for "evidence".
-- Choose relevant ATS keywords for a fresher in this role (≤10 chips).
-- Provide 3 strengths, 3 improvements, 3 follow-up questions.
-- Provide a 5-day action plan (10–20 min/day).
-- Include 1 STAR "before→after" rewrite from any behavioural answer.
-
-Return valid JSON per schema.`;
 
 interface FeedbackData {
   overall: string;
@@ -101,350 +64,10 @@ interface FeedbackData {
     CultureOwnership: number;
     Coachability: number;
   };
-  evidence: string[];
   strengths: string[];
   improvements: string[];
-  redFlags: string[];
   followUps: string[];
-  actionPlan: Array<{day: number; task: string}>;
-  starReframe: {
-    before: string;
-    after: string;
-  };
-  atsKeywords: string[];
   score: number;
-  notes: string;
-}
-
-// Comprehensive company-role based question bank for freshers
-const COMPANY_ROLE_QUESTIONS = {
-  "TCS": {
-    "Software Engineer": [
-      "Explain OOPS concepts with examples.",
-      "What is the difference between C and Java?",
-      "Write a SQL query to get the top 3 salaries.",
-      "What is normalization in databases?",
-      "Tell me about yourself in detail.",
-      "Explain Agile methodology in simple words.",
-      "What is the difference between REST and SOAP APIs?"
-    ]
-  },
-  "Infosys": {
-    "Software Engineer": [
-      "What are the four pillars of OOPS?",
-      "Explain SDLC phases.",
-      "How is Python different from Java?",
-      "Explain primary key vs foreign key.",
-      "Where do you see yourself in 5 years?",
-      "Explain microservices architecture.",
-      "What are the key benefits of DevOps?"
-    ],
-    "Data Analyst": [
-      "Difference between machine learning and deep learning?",
-      "How would you design a login system?",
-      "Why Infosys Digital over System Engineer?",
-      "What is data normalization?",
-      "Explain SQL vs NoSQL databases.",
-      "How do you handle missing data in analysis?",
-      "What is the difference between correlation and causation?"
-    ]
-  },
-  "Wipro": {
-    "Software Engineer": [
-      "What is encapsulation in OOPS?",
-      "Explain deadlock with example.",
-      "What are joins in SQL? Give examples.",
-      "How do you handle pressure situations?",
-      "Why do you want to work at Wipro?",
-      "What is polymorphism in programming?",
-      "Explain the concept of inheritance."
-    ]
-  },
-  "HCL": {
-    "Software Engineer": [
-      "Explain polymorphism with an example.",
-      "What is multithreading?",
-      "What is the use of indexes in databases?",
-      "Tell me about a challenge you faced in college.",
-      "Why should we hire you as a fresher?",
-      "What is abstraction in OOPS?",
-      "How do you debug a program?"
-    ]
-  },
-  "Accenture": {
-    "Software Engineer": [
-      "What is cloud computing? Types of cloud?",
-      "Explain SDLC Agile vs Waterfall.",
-      "What are functional and non-functional requirements?",
-      "Give an example of teamwork from college.",
-      "Why Accenture and not other IT companies?",
-      "What is API and how does it work?",
-      "Explain the concept of version control."
-    ]
-  },
-  "Zoho": {
-    "Software Engineer": [
-      "Explain difference between array and linked list.",
-      "Write a program to reverse a string.",
-      "What is recursion? Give an example.",
-      "Explain TCP vs UDP.",
-      "Why Zoho as your career choice?",
-      "What is a binary tree?",
-      "How do you optimize code performance?"
-    ]
-  },
-  "Amazon": {
-    "Software Engineer": [
-      "Explain Big-O notation with example.",
-      "How would you design an elevator system?",
-      "SQL: Get customers who ordered more than 3 times in a month.",
-      "What is Amazon's Leadership Principle you relate with?",
-      "Tell me about a time you solved a tough problem.",
-      "What is dynamic programming?",
-      "How do you handle system scalability?"
-    ]
-  },
-  "Microsoft": {
-    "Software Engineer": [
-      "What happens when you type a URL in a browser?",
-      "Explain garbage collection in Java or C#.",
-      "Design a data structure for an LRU cache.",
-      "What is polymorphism?",
-      "Why do you want to join Microsoft?",
-      "What is dependency injection?",
-      "How do you ensure code quality?"
-    ]
-  },
-  "Google": {
-    "Software Engineer": [
-      "Explain MapReduce in simple words.",
-      "Design a system like Google Docs (collaborative editor).",
-      "How would you detect spam emails?",
-      "Explain difference between supervised vs unsupervised ML.",
-      "What motivates you to join Google?",
-      "What is distributed computing?",
-      "How do you handle large datasets?"
-    ]
-  },
-  "Adobe": {
-    "Software Engineer": [
-      "What is inheritance in OOPS?",
-      "Explain MVC architecture.",
-      "How do you handle memory leaks?",
-      "What is a hash table and where is it used?",
-      "Why Adobe over other product companies?",
-      "What is event-driven programming?",
-      "How do you optimize user interfaces?"
-    ]
-  },
-  "L&T": {
-    "GET (Mechanical / Civil / EEE / Automobile)": [
-      "Explain stress vs strain with example.",
-      "What is shear force and bending moment?",
-      "Difference between RCC and PCC?",
-      "Tell me about a construction project you worked on.",
-      "Why do you want to join L&T?",
-      "What is project management?",
-      "How do you ensure safety in construction?"
-    ]
-  },
-  "Bosch": {
-    "GET (Mechanical / Civil / EEE / Automobile)": [
-      "Explain IC engine working.",
-      "What is Six Sigma?",
-      "What are different welding methods?",
-      "Tell me about your final year project.",
-      "Why Bosch as your first employer?",
-      "What is lean manufacturing?",
-      "How do you reduce production costs?"
-    ]
-  },
-  "Hyundai": {
-    "GET (Mechanical / Civil / EEE / Automobile)": [
-      "Explain thermodynamics laws in automobiles.",
-      "Difference between diesel and petrol engine?",
-      "How do you test vehicle safety?",
-      "What is lean manufacturing?",
-      "Why Hyundai and not another automobile company?",
-      "What is automotive electronics?",
-      "How do you improve fuel efficiency?"
-    ]
-  },
-  "Ford": {
-    "GET (Mechanical / Civil / EEE / Automobile)": [
-      "What is ABS and how does it work?",
-      "Explain supply chain process for automobiles.",
-      "What is Kaizen?",
-      "Describe a teamwork experience in college.",
-      "Why Ford Motors?",
-      "What is quality control in manufacturing?",
-      "How do you handle production deadlines?"
-    ]
-  },
-  "Ashok Leyland": {
-    "GET (Mechanical / Civil / EEE / Automobile)": [
-      "Explain suspension system basics.",
-      "What are emission norms (BS6)?",
-      "What is difference between torque and power?",
-      "How do you reduce production defects?",
-      "Why Ashok Leyland?",
-      "What is preventive maintenance?",
-      "How do you optimize vehicle design?"
-    ]
-  },
-  "Deloitte": {
-    "Consulting Analyst": [
-      "Explain SWOT analysis.",
-      "What are KPIs in consulting?",
-      "Tell me about a time you solved a problem with incomplete data.",
-      "How do you handle deadlines?",
-      "Why Deloitte?",
-      "What is business process improvement?",
-      "How do you manage client expectations?"
-    ]
-  },
-  "KPMG": {
-    "Consulting Analyst": [
-      "What is difference between audit and assurance?",
-      "What is risk-based auditing?",
-      "How do you prioritize client requirements?",
-      "Give an example of critical thinking you used.",
-      "Why KPMG?",
-      "What is financial analysis?",
-      "How do you present findings to clients?"
-    ]
-  },
-  "EY": {
-    "Consulting Analyst": [
-      "What is financial due diligence?",
-      "How do you deal with data inconsistencies?",
-      "Explain stakeholder management with example.",
-      "What is your strength that fits EY?",
-      "Why EY?",
-      "What is change management?",
-      "How do you handle confidential information?"
-    ]
-  },
-  "PwC": {
-    "Consulting Analyst": [
-      "What is digital transformation?",
-      "How would you analyze a failing business unit?",
-      "Tell me about a leadership role in college.",
-      "What is one weakness you are improving?",
-      "Why PwC?",
-      "What is strategic planning?",
-      "How do you work with diverse teams?"
-    ]
-  },
-  "Goldman Sachs": {
-    "Business Analyst": [
-      "Explain derivatives in simple words.",
-      "What is difference between equity and debt?",
-      "SQL: How do you find duplicate records?",
-      "How do you manage stress?",
-      "Why Goldman Sachs?",
-      "What is financial modeling?",
-      "How do you analyze market trends?"
-    ]
-  },
-  "JP Morgan": {
-    "Business Analyst": [
-      "What is investment banking in simple words?",
-      "Explain DB transaction ACID properties.",
-      "Tell me about an Excel formula you use often.",
-      "How do you prioritize tasks?",
-      "Why JP Morgan?",
-      "What is risk assessment?",
-      "How do you handle large datasets in Excel?"
-    ]
-  },
-  "Flipkart": {
-    "Business Analyst": [
-      "How would you improve Flipkart's checkout process?",
-      "What metrics matter most in e-commerce?",
-      "Explain recommendation systems briefly.",
-      "Tell me about a time you handled data ambiguity.",
-      "Why Flipkart?",
-      "What is A/B testing?",
-      "How do you measure customer satisfaction?"
-    ]
-  },
-  "Swiggy": {
-    "Business Analyst": [
-      "What metrics track food delivery efficiency?",
-      "How would you reduce late deliveries?",
-      "Design a dashboard for Swiggy operations.",
-      "What is your favorite feature of Swiggy and why?",
-      "Why Swiggy?",
-      "What is demand forecasting?",
-      "How do you optimize delivery routes?"
-    ]
-  },
-  "Zomato": {
-    "Business Analyst": [
-      "How would you improve Zomato Gold?",
-      "Which metrics show restaurant partner success?",
-      "Design a simple dashboard for restaurant ratings.",
-      "What motivates you in the food-tech sector?",
-      "Why Zomato?",
-      "What is customer retention strategy?",
-      "How do you analyze user behavior?"
-    ]
-  },
-  "Freshworks": {
-    "Sales/BD Associate": [
-      "How would you pitch Freshworks CRM to a small business?",
-      "What are the key challenges in SaaS sales?",
-      "Tell me about a time you convinced someone.",
-      "How do you handle rejection?",
-      "Why Freshworks?",
-      "What is customer lifecycle management?",
-      "How do you build client relationships?"
-    ]
-  }
-};
-
-const COMPANY_CATEGORIES = {
-  "IT Services & Consulting": ["TCS", "Infosys", "Wipro", "HCL", "Accenture"],
-  "Product & Tech": ["Zoho", "Amazon", "Microsoft", "Google", "Adobe"],
-  "Core Engineering": ["L&T", "Bosch", "Hyundai", "Ford", "Ashok Leyland"],
-  "Consulting & Finance": ["Deloitte", "KPMG", "EY", "PwC", "Goldman Sachs", "JP Morgan"],
-  "Startups & Unicorns": ["Flipkart", "Swiggy", "Zomato", "Freshworks"]
-};
-
-const JOB_ROLES = [
-  "Software Engineer", "Data Analyst", "Cloud Engineer", "QA Engineer",
-  "GET (Mechanical / Civil / EEE / Automobile)",
-  "Consulting Analyst", "Risk Advisory Analyst", "Tech Analyst",
-  "Business Analyst", "Product Intern", "Sales/BD Associate"
-];
-
-const EXPERIENCE_LEVELS = ["Fresher (0 years)"];
-
-const SUGGESTED_TOPICS = {
-  "Software Engineer": ["DSA", "OOP", "SQL", "REST APIs", "Problem Solving", "Behavioural"],
-  "Data Analyst": ["SQL", "Excel", "Statistics", "Data Visualization", "Communication", "Behavioural"],
-  "Cloud Engineer": ["AWS", "Docker", "CI/CD", "DevOps", "Networking", "Problem Solving"],
-  "QA Engineer": ["Testing", "Automation", "SDLC", "Bug Tracking", "Communication", "Behavioural"],
-  "GET (Mechanical / Civil / EEE / Automobile)": ["Core Engineering", "Manufacturing", "CAD", "Problem Solving", "Communication", "Behavioural"],
-  "Consulting Analyst": ["Case Studies", "Guesstimates", "Problem Solving", "Communication", "Presentation", "Behavioural"],
-  "Business Analyst": ["Business Strategy", "Data Analysis", "Stakeholder Management", "Communication", "Problem Solving", "Behavioural"]
-};
-
-type Step = "setup" | "interview" | "feedback";
-
-interface InterviewData {
-  company: string;
-  role: string;
-  experience: string;
-  questions: string[];
-  answers: string[];
-  currentQuestion: number;
-}
-
-interface QAData {
-  question: string;
-  answer: string;
 }
 
 const MyInterviewWorld = () => {
@@ -452,33 +75,18 @@ const MyInterviewWorld = () => {
   const [interviewData, setInterviewData] = useState<InterviewData>({
     company: "",
     role: "",
-    experience: "",
     questions: [],
     answers: [],
     currentQuestion: 0
   });
   const [currentAnswer, setCurrentAnswer] = useState("");
   const [isRecording, setIsRecording] = useState(false);
-  const [aiMode, setAiMode] = useState(false);
   const [feedbackData, setFeedbackData] = useState<FeedbackData | null>(null);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const { toast } = useToast();
 
-  // Helper function to get suggested topics
-  const getSuggestedTopics = (role: string) => {
-    return SUGGESTED_TOPICS[role as keyof typeof SUGGESTED_TOPICS] || [];
-  };
-
-  // Helper function to build QA data
-  const getQAData = (): QAData[] => {
-    return interviewData.questions.map((question, index) => ({
-      question,
-      answer: interviewData.answers[index] || ""
-    }));
-  };
-
   const handleStartInterview = () => {
-    if (!interviewData.company || !interviewData.role || !interviewData.experience) {
+    if (!interviewData.company || !interviewData.role) {
       toast({
         title: "Missing Information",
         description: "Please fill in all fields before starting the interview.",
@@ -487,176 +95,74 @@ const MyInterviewWorld = () => {
       return;
     }
 
-    const companyQuestions = COMPANY_ROLE_QUESTIONS[interviewData.company as keyof typeof COMPANY_ROLE_QUESTIONS];
-    const questions = companyQuestions?.[interviewData.role as keyof typeof companyQuestions] as string[] || [];
-    
-    if (questions.length === 0) {
+    setInterviewData(prev => ({
+      ...prev,
+      questions: SAMPLE_QUESTIONS,
+      answers: new Array(SAMPLE_QUESTIONS.length).fill(""),
+      currentQuestion: 0
+    }));
+    setCurrentStep("interview");
+  };
+
+  const handleSubmitAnswer = () => {
+    if (!currentAnswer.trim()) {
       toast({
-        title: "No Questions Available",
-        description: "No questions found for this company-role combination.",
+        title: "Empty Answer",
+        description: "Please provide an answer before submitting.",
         variant: "destructive"
       });
       return;
     }
-    
-    setInterviewData(prev => ({
-      ...prev,
-      questions: questions.slice(0, 7),
-      answers: new Array(Math.min(7, questions.length)).fill("")
-    }));
-    setCurrentStep("interview");
-    toast({
-      title: "Interview Started!",
-      description: "Good luck with your practice session."
-    });
-  };
 
-  const handleAnswerSubmit = () => {
     const newAnswers = [...interviewData.answers];
     newAnswers[interviewData.currentQuestion] = currentAnswer;
-    setInterviewData(prev => ({
-      ...prev,
-      answers: newAnswers
-    }));
+    setInterviewData(prev => ({ ...prev, answers: newAnswers }));
     setCurrentAnswer("");
 
-    if (interviewData.currentQuestion < interviewData.questions.length - 1) {
-      setInterviewData(prev => ({
-        ...prev,
-        currentQuestion: prev.currentQuestion + 1
-      }));
-      toast({
-        title: `Question ${interviewData.currentQuestion + 2}/${interviewData.questions.length}`,
-        description: "Next question loaded."
-      });
+    if (interviewData.currentQuestion + 1 < interviewData.questions.length) {
+      setInterviewData(prev => ({ ...prev, currentQuestion: prev.currentQuestion + 1 }));
     } else {
-      handleGetFeedback();
+      handleGenerateFeedback();
     }
   };
 
-  const handleSpeakQuestion = () => {
-    if (aiMode) {
-      toast({
-        title: "AI TTS Feature",
-        description: "Connect to Supabase to enable AI-powered text-to-speech."
-      });
-    } else {
-      const currentQuestion = interviewData.questions[interviewData.currentQuestion];
-      if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(currentQuestion);
-        speechSynthesis.speak(utterance);
-      } else {
-        toast({
-          title: "Speech Not Supported",
-          description: "Your browser doesn't support text-to-speech."
-        });
-      }
-    }
-  };
-
-  const handleRecordToggle = () => {
-    if (isRecording) {
-      setIsRecording(false);
-      toast({
-        title: "Recording Stopped",
-        description: "Audio recording feature requires Supabase integration."
-      });
-    } else {
-      setIsRecording(true);
-      toast({
-        title: "Recording Started",
-        description: "Audio recording feature requires Supabase integration."
-      });
-    }
-  };
-
-  const handleGetFeedback = async () => {
-    setCurrentStep("feedback");
+  const handleGenerateFeedback = () => {
     setFeedbackLoading(true);
     
-    try {
-      // Build QA content for the prompt
-      const qaData = getQAData();
-      const qaContent = qaData.map((qa, index) => 
-        `Q${index + 1}: ${qa.question}\nA${index + 1}: ${qa.answer || "No answer"}`
-      ).join('\n\n');
-      
-      // Get suggested topics for context
-      const topicsCsv = getSuggestedTopics(interviewData.role).join(', ');
-      
-      // Replace template variables
-      let evaluationPrompt = AI_EVALUATION_PROMPT
-        .replace('{{company}}', interviewData.company)
-        .replace('{{role}}', interviewData.role)
-        .replace('{{topicsCsv}}', topicsCsv)
-        .replace('{{qaContent}}', qaContent);
-      
-      // Simulate AI call (replace with actual API call in production)
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Mock feedback response matching the schema
+    // Simulate feedback generation
+    setTimeout(() => {
       const mockFeedback: FeedbackData = {
         overall: "Hire",
         competencies: {
           Communication: 4,
           StructuredThinkingSTAR: 3,
           TechnicalFundamentals: 4,
-          ProblemSolving: 4,
-          CultureOwnership: 3,
+          ProblemSolving: 3,
+          CultureOwnership: 4,
           Coachability: 4
         },
-        evidence: [
-          "Good technical understanding shown",
-          "Clear communication style",
-          "Proactive learning attitude"
-        ],
         strengths: [
-          "Strong foundational knowledge",
-          "Good problem-solving approach",
-          "Enthusiasm for learning"
+          "Clear communication style",
+          "Good technical understanding",
+          "Positive attitude and enthusiasm"
         ],
         improvements: [
-          "Practice STAR format for behavioral questions",
-          "Add more specific examples",
-          "Improve depth in technical explanations"
+          "Use STAR framework for behavioral answers",
+          "Provide more specific examples",
+          "Practice technical problem-solving"
         ],
-        redFlags: [],
         followUps: [
-          "Can you walk through a specific project challenge?",
-          "How do you stay updated with technology trends?",
-          "Describe a time you had to learn something quickly"
+          "Can you walk me through your problem-solving process?",
+          "How do you stay updated with industry trends?",
+          "Tell me about a time you failed and what you learned."
         ],
-        actionPlan: [
-          {day: 1, task: "Practice 2 behavioral questions using STAR format"},
-          {day: 2, task: "Review core technical concepts for your role"},
-          {day: 3, task: "Prepare specific project examples with metrics"},
-          {day: 4, task: "Mock interview with peer focusing on communication"},
-          {day: 5, task: "Research company culture and recent news"}
-        ],
-        starReframe: {
-          before: "I worked on a team project in college.",
-          after: "S: Final year capstone project; T: Lead 4-member team; A: Coordinated sprints, resolved conflicts; R: Delivered on time, 95% grade."
-        },
-        atsKeywords: ["Java", "SQL", "Problem Solving", "Team Work", "Communication", "Fresh Graduate", "SDLC", "Agile"],
-        score: 7,
-        notes: "Good foundation, needs practice on structured responses"
+        score: 7
       };
       
       setFeedbackData(mockFeedback);
-      toast({
-        title: "Feedback Generated!",
-        description: "Your interview analysis is ready."
-      });
-    } catch (error) {
-      console.error('Feedback generation failed:', error);
-      toast({
-        title: "Error",
-        description: "Failed to generate feedback. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
+      setCurrentStep("feedback");
       setFeedbackLoading(false);
-    }
+    }, 2000);
   };
 
   const resetInterview = () => {
@@ -664,7 +170,6 @@ const MyInterviewWorld = () => {
     setInterviewData({
       company: "",
       role: "",
-      experience: "",
       questions: [],
       answers: [],
       currentQuestion: 0
@@ -678,73 +183,64 @@ const MyInterviewWorld = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <section className="hero-gradient py-16 px-4">
-        <div className="container mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-bold font-heading text-white mb-4">
+      <Header />
+      
+      <div className="container mx-auto px-4 py-8">
+        {/* Page Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl md:text-5xl font-heading font-bold text-foreground mb-4">
             MyInterview World
           </h1>
-          <p className="text-xl font-body italic text-white/90 mb-4">
-            Prepare. Practice. Perform.
-          </p>
-          <p className="text-lg font-body text-white/80 max-w-2xl mx-auto">
-            Simulate real campus interviews as a Fresher and get recruiter-style feedback.
+          <p className="text-lg font-body text-foreground mb-6">
+            Land any job (Fresher).
           </p>
         </div>
-      </section>
 
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg font-ui">M</span>
-              </div>
-              <div>
-                <span className="text-lg font-semibold text-gray-900 font-heading">MyDebate.ai</span>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium font-ui">AI Mode</span>
-                <Button
-                  variant={aiMode ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setAiMode(!aiMode)}
-                  className="font-ui"
-                >
-                  {aiMode ? "AI" : "Free"}
-                </Button>
-              </div>
-              {currentStep === "interview" && (
-                <div className="text-sm font-medium font-ui text-primary">
-                  Question {interviewData.currentQuestion + 1}/{interviewData.questions.length}
-                </div>
-              )}
-            </div>
-          </div>
-          {currentStep === "interview" && (
-            <div className="mt-4">
-              <Progress value={progress} className="h-2" />
-            </div>
-          )}
-        </div>
-      </header>
+        {/* Instructions Panel */}
+        <Card className="mb-8 bg-card border rounded-2xl">
+          <CardHeader>
+            <CardTitle className="text-xl font-heading text-foreground flex items-center">
+              <Target className="w-5 h-5 mr-2 text-primary" />
+              What you can do here
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2 font-body text-foreground">
+              <li className="flex items-start">
+                <CheckCircle className="w-4 h-4 mt-1 mr-2 text-primary flex-shrink-0" />
+                Select your <strong>Company</strong> and <strong>Role</strong> (Fresher roles only).
+              </li>
+              <li className="flex items-start">
+                <CheckCircle className="w-4 h-4 mt-1 mr-2 text-primary flex-shrink-0" />
+                Answer <strong>5–6 role-specific questions</strong> (audio or text).
+              </li>
+              <li className="flex items-start">
+                <CheckCircle className="w-4 h-4 mt-1 mr-2 text-primary flex-shrink-0" />
+                Get <strong>recruiter-style feedback</strong> (Hire signal, competency bars, STAR tips).
+              </li>
+              <li className="flex items-start">
+                <CheckCircle className="w-4 h-4 mt-1 mr-2 text-primary flex-shrink-0" />
+                Save the attempt to your <strong>Dashboard</strong> and see improvement over time.
+              </li>
+            </ul>
+          </CardContent>
+        </Card>
 
-      <main className="container mx-auto px-4 py-8">
         {/* Step 1: Setup */}
         {currentStep === "setup" && (
-          <Card className="max-w-2xl mx-auto card-shadow card-hover rounded-xl">
+          <Card className="max-w-2xl mx-auto card-shadow card-hover rounded-2xl">
             <CardHeader className="text-center">
-              <CardTitle className="text-3xl font-bold text-gray-900 font-heading">Choose Your Role</CardTitle>
-              <CardDescription className="text-lg font-body">
+              <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mx-auto mb-4">
+                <Briefcase className="w-6 h-6 text-primary-foreground" />
+              </div>
+              <CardTitle className="text-3xl font-bold text-foreground font-heading">Choose Your Role</CardTitle>
+              <CardDescription className="text-lg font-body text-foreground">
                 Select your target company and position for interview practice
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 font-ui">Company</label>
+                <label className="text-sm font-medium text-foreground font-ui">Company</label>
                 <Select value={interviewData.company} onValueChange={(value) => 
                   setInterviewData(prev => ({ ...prev, company: value }))
                 }>
@@ -754,8 +250,10 @@ const MyInterviewWorld = () => {
                   <SelectContent>
                     {Object.entries(COMPANY_CATEGORIES).map(([category, companies]) => (
                       <div key={category}>
-                        <div className="px-2 py-1 text-xs font-semibold text-muted-foreground font-ui">
-                          {category}
+                        <div className="px-2 py-1">
+                          <div className="text-xs font-semibold text-foreground uppercase tracking-wide">
+                            {category}
+                          </div>
                         </div>
                         {companies.map(company => (
                           <SelectItem key={company} value={company} className="pl-4">
@@ -769,7 +267,7 @@ const MyInterviewWorld = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 font-ui">Job Role</label>
+                <label className="text-sm font-medium text-foreground font-ui">Job Role</label>
                 <Select value={interviewData.role} onValueChange={(value) => 
                   setInterviewData(prev => ({ ...prev, role: value }))
                 }>
@@ -785,27 +283,21 @@ const MyInterviewWorld = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 font-ui">Experience Level</label>
-                <Select value={interviewData.experience} onValueChange={(value) => 
-                  setInterviewData(prev => ({ ...prev, experience: value }))
-                }>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select experience level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {EXPERIENCE_LEVELS.map(level => (
-                      <SelectItem key={level} value={level}>{level}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <label className="text-sm font-medium text-foreground font-ui">Experience Level</label>
+                <div className="p-3 bg-muted rounded-lg">
+                  <Badge className="bg-primary text-primary-foreground">Fresher (0 years)</Badge>
+                  <p className="text-sm text-foreground mt-2 font-body">
+                    This page is specifically designed for fresh graduates and entry-level positions.
+                  </p>
+                </div>
               </div>
 
               {interviewData.role && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 font-ui">Suggested Topics</label>
+                  <label className="text-sm font-medium text-foreground font-ui">Suggested Topics</label>
                   <div className="flex flex-wrap gap-2">
                     {SUGGESTED_TOPICS[interviewData.role as keyof typeof SUGGESTED_TOPICS]?.map(topic => (
-                      <Badge key={topic} variant="secondary" className="bg-accent/10 text-accent font-ui">
+                      <Badge key={topic} variant="outline" className="text-foreground border-primary">
                         {topic}
                       </Badge>
                     ))}
@@ -815,7 +307,7 @@ const MyInterviewWorld = () => {
 
               <Button 
                 onClick={handleStartInterview}
-                className="w-full button-gradient text-white py-3 text-lg font-semibold font-ui rounded-xl"
+                className="w-full bg-primary text-primary-foreground hover:bg-primary-hover py-3 text-lg font-semibold font-ui rounded-xl"
                 size="lg"
               >
                 Start Interview
@@ -826,259 +318,200 @@ const MyInterviewWorld = () => {
 
         {/* Step 2: Interview */}
         {currentStep === "interview" && (
-          <div className="grid lg:grid-cols-2 gap-8">
-            {/* Question Panel */}
-            <Card className="rounded-xl card-shadow">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between font-heading">
-                  <span>Interview Question</span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleSpeakQuestion}
-                    className="flex items-center space-x-2 font-ui"
-                  >
-                    <Volume2 size={16} />
-                    <span>Ask Aloud</span>
-                  </Button>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-gray-50 p-6 rounded-lg border">
-                  <p className="text-lg font-medium text-gray-900 font-body">
-                    {interviewData.questions[interviewData.currentQuestion]}
-                  </p>
-                </div>
-                <div className="mt-4 text-sm text-gray-600 font-body">
-                  Take your time to think through your answer. You can respond via text or audio recording.
-                </div>
-              </CardContent>
-            </Card>
+          <div className="max-w-4xl mx-auto">
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-2">
+                <h2 className="text-xl font-heading font-bold text-foreground">
+                  Question {interviewData.currentQuestion + 1} of {interviewData.questions.length}
+                </h2>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center space-x-2 font-ui text-foreground border-secondary"
+                >
+                  <Volume2 size={16} />
+                  <span>Ask Aloud</span>
+                </Button>
+              </div>
+              <Progress value={progress} className="h-2" />
+            </div>
 
-            {/* Answer Panel */}
-            <Card className="rounded-xl card-shadow">
-              <CardHeader>
-                <CardTitle className="font-heading">Your Answer</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-4">
+            <div className="grid lg:grid-cols-2 gap-8">
+              {/* Question Panel */}
+              <Card className="rounded-2xl card-shadow">
+                <CardHeader>
+                  <CardTitle className="font-heading text-foreground">Interview Question</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-muted p-6 rounded-lg border">
+                    <p className="text-lg font-medium text-foreground font-body">
+                      {interviewData.questions[interviewData.currentQuestion]}
+                    </p>
+                  </div>
+                  <div className="mt-4 text-sm text-foreground font-body">
+                    Take your time to think through your answer. You can respond via text or audio recording.
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Answer Panel */}
+              <Card className="rounded-2xl card-shadow">
+                <CardHeader>
+                  <CardTitle className="font-heading text-foreground">Your Answer</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
                   <Textarea
-                    placeholder="Type your answer here..."
                     value={currentAnswer}
                     onChange={(e) => setCurrentAnswer(e.target.value)}
-                    rows={8}
-                    className="resize-none"
+                    placeholder="Type your answer here..."
+                    className="min-h-[200px] text-foreground"
                   />
                   
                   <div className="flex items-center justify-between">
                     <Button
-                      variant={isRecording ? "destructive" : "outline"}
-                      onClick={handleRecordToggle}
-                      className="flex items-center space-x-2 font-ui"
+                      variant="outline"
+                      onClick={() => setIsRecording(!isRecording)}
+                      className={`flex items-center space-x-2 font-ui ${isRecording ? 'text-red-600 border-red-300' : 'text-foreground border-secondary'}`}
                     >
                       <Mic size={16} />
-                      <span>{isRecording ? "Stop Recording" : "Record Audio"}</span>
+                      <span>{isRecording ? 'Stop Recording' : 'Record Audio'}</span>
                     </Button>
                     
-                    <Button
-                      onClick={handleAnswerSubmit}
-                      disabled={!currentAnswer.trim()}
-                      className="flex items-center space-x-2 button-gradient font-ui rounded-xl"
+                    <Button 
+                      onClick={handleSubmitAnswer}
+                      className="bg-primary text-primary-foreground hover:bg-primary-hover font-ui rounded-xl"
                     >
-                      <Send size={16} />
-                      <span>Submit Answer</span>
+                      <Send size={16} className="mr-2" />
+                      Submit Answer
                     </Button>
                   </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Feedback */}
+        {currentStep === "feedback" && feedbackData && (
+          <div className="max-w-4xl mx-auto space-y-8">
+            <Card className="rounded-2xl card-shadow">
+              <CardHeader className="text-center">
+                <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Award className="w-8 h-8 text-primary-foreground" />
+                </div>
+                <CardTitle className="text-3xl font-heading text-foreground">Interview Feedback</CardTitle>
+                <CardDescription className="text-lg font-body text-foreground">
+                  Recruiter-style evaluation and actionable insights
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {/* Overall Recommendation */}
+                <div className="text-center mb-8">
+                  <div className="inline-flex items-center space-x-2 px-4 py-2 bg-primary/10 rounded-full">
+                    <TrendingUp className="w-5 h-5 text-primary" />
+                    <span className="font-ui font-semibold text-foreground">Recommendation: {feedbackData.overall}</span>
+                  </div>
+                  <p className="text-sm text-foreground mt-2 font-body">Score: {feedbackData.score}/10</p>
+                </div>
+
+                {/* Competencies */}
+                <div className="grid md:grid-cols-2 gap-6 mb-8">
+                  <div>
+                    <h3 className="text-lg font-heading font-bold text-foreground mb-4">Competency Scores</h3>
+                    <div className="space-y-3">
+                      {Object.entries(feedbackData.competencies).map(([skill, score]) => (
+                        <div key={skill} className="space-y-1">
+                          <div className="flex justify-between">
+                            <span className="text-sm font-ui text-foreground">{skill}</span>
+                            <span className="text-sm font-ui text-foreground">{score}/5</span>
+                          </div>
+                          <Progress value={(score / 5) * 100} className="h-2" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-heading font-bold text-foreground mb-4">Key Insights</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="font-ui font-semibold text-foreground text-sm mb-2">Strengths</h4>
+                        <ul className="space-y-1">
+                          {feedbackData.strengths.map((strength, index) => (
+                            <li key={index} className="text-sm text-foreground font-body flex items-start">
+                              <CheckCircle className="w-3 h-3 mt-0.5 mr-2 text-primary flex-shrink-0" />
+                              {strength}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      
+                      <div>
+                        <h4 className="font-ui font-semibold text-foreground text-sm mb-2">Areas for Improvement</h4>
+                        <ul className="space-y-1">
+                          {feedbackData.improvements.map((improvement, index) => (
+                            <li key={index} className="text-sm text-foreground font-body flex items-start">
+                              <Target className="w-3 h-3 mt-0.5 mr-2 text-secondary flex-shrink-0" />
+                              {improvement}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Follow-up Questions */}
+                <div className="mb-8">
+                  <h3 className="text-lg font-heading font-bold text-foreground mb-4">Follow-up Questions for Next Time</h3>
+                  <div className="grid md:grid-cols-1 gap-3">
+                    {feedbackData.followUps.map((question, index) => (
+                      <div key={index} className="p-3 bg-muted rounded-lg">
+                        <p className="text-sm text-foreground font-body">{question}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Button 
+                    onClick={resetInterview}
+                    variant="outline"
+                    className="font-ui text-foreground border-secondary hover:bg-secondary/10 rounded-xl"
+                  >
+                    <RotateCcw size={16} className="mr-2" />
+                    Try Another Interview
+                  </Button>
+                  <Button className="bg-primary text-primary-foreground hover:bg-primary-hover font-ui rounded-xl">
+                    <Save size={16} className="mr-2" />
+                    Save to Dashboard
+                  </Button>
                 </div>
               </CardContent>
             </Card>
           </div>
         )}
 
-        {/* Step 3: Feedback */}
-        {currentStep === "feedback" && (
-          <div className="max-w-4xl mx-auto space-y-8">
-            {feedbackLoading ? (
-              <Card className="rounded-xl card-shadow">
-                <CardContent className="py-16 text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                  <p className="text-lg font-body text-gray-600">Analyzing your responses...</p>
-                </CardContent>
-              </Card>
-            ) : feedbackData ? (
-              <Card className="rounded-xl card-shadow">
-                <CardHeader className="text-center">
-                  <CardTitle className="text-3xl font-bold text-gray-900 font-heading">Interview Feedback</CardTitle>
-                  <CardDescription className="text-lg font-body">
-                    AI-powered analysis of your interview performance
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Overall Score & Recommendation */}
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="text-center bg-success/10 p-6 rounded-lg">
-                      <div className="text-4xl font-bold text-success mb-2 font-heading">{feedbackData.score}/10</div>
-                      <div className="text-lg text-gray-700 font-body">Interview Score</div>
-                    </div>
-                    <div className="text-center bg-primary/10 p-6 rounded-lg">
-                      <div className="text-2xl font-bold text-primary mb-2 font-heading">{feedbackData.overall}</div>
-                      <div className="text-lg text-gray-700 font-body">Recommendation</div>
-                    </div>
-                  </div>
-
-                  {/* Competency Scores */}
-                  <div className="space-y-3">
-                    <h3 className="text-xl font-semibold text-gray-900 font-heading">Competency Breakdown</h3>
-                    {Object.entries(feedbackData.competencies).map(([competency, score]) => (
-                      <div key={competency} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-                        <span className="font-body font-medium">{competency.replace('StructuredThinkingSTAR', 'Structured Thinking & STAR')}</span>
-                        <div className="flex items-center space-x-2">
-                          <Progress value={score * 20} className="w-24 h-2" />
-                          <span className="font-ui font-bold text-primary">{score}/5</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Evidence Quotes */}
-                  <div className="space-y-3">
-                    <h3 className="text-xl font-semibold text-gray-900 font-heading">Key Evidence</h3>
-                    <div className="bg-blue-50 p-4 rounded-lg space-y-2">
-                      {feedbackData.evidence.map((quote, index) => (
-                        <p key={index} className="font-body italic text-blue-800">"{quote}"</p>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Strengths & Improvements */}
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <h3 className="text-xl font-semibold text-gray-900 mb-4 font-heading">Strengths</h3>
-                      <ul className="space-y-2">
-                        {feedbackData.strengths.map((strength, index) => (
-                          <li key={index} className="flex items-start space-x-2">
-                            <span className="text-success">✓</span>
-                            <span className="font-body">{strength}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-semibold text-gray-900 mb-4 font-heading">Areas for Improvement</h3>
-                      <ul className="space-y-2">
-                        {feedbackData.improvements.map((improvement, index) => (
-                          <li key={index} className="flex items-start space-x-2">
-                            <span className="text-orange-500">→</span>
-                            <span className="font-body">{improvement}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-
-                  {/* STAR Reframe */}
-                  {feedbackData.starReframe.before && (
-                    <div className="space-y-3">
-                      <h3 className="text-xl font-semibold text-gray-900 font-heading">STAR Method Improvement</h3>
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div className="bg-red-50 p-4 rounded-lg">
-                          <h4 className="font-semibold text-red-800 mb-2 font-ui">Before:</h4>
-                          <p className="font-body text-red-700">"{feedbackData.starReframe.before}"</p>
-                        </div>
-                        <div className="bg-green-50 p-4 rounded-lg">
-                          <h4 className="font-semibold text-green-800 mb-2 font-ui">After (STAR):</h4>
-                          <p className="font-body text-green-700">"{feedbackData.starReframe.after}"</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Action Plan */}
-                  <div className="space-y-3">
-                    <h3 className="text-xl font-semibold text-gray-900 font-heading">5-Day Action Plan</h3>
-                    <div className="space-y-2">
-                      {feedbackData.actionPlan.map((plan, index) => (
-                        <div key={index} className="flex items-center space-x-3 bg-gray-50 p-3 rounded-lg">
-                          <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-bold font-ui">
-                            {plan.day}
-                          </div>
-                          <span className="font-body">{plan.task}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* ATS Keywords */}
-                  <div className="space-y-3">
-                    <h3 className="text-xl font-semibold text-gray-900 font-heading">ATS Keywords for Your Resume</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {feedbackData.atsKeywords.map((keyword, index) => (
-                        <Badge key={index} variant="outline" className="bg-accent/10 text-accent font-ui">
-                          {keyword}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Follow-up Questions */}
-                  <div className="space-y-3">
-                    <h3 className="text-xl font-semibold text-gray-900 font-heading">Follow-up Questions to Practice</h3>
-                    <div className="bg-yellow-50 p-4 rounded-lg space-y-2">
-                      {feedbackData.followUps.map((question, index) => (
-                        <p key={index} className="font-body text-yellow-800">• {question}</p>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Red Flags */}
-                  {feedbackData.redFlags.length > 0 && (
-                    <div className="space-y-3">
-                      <h3 className="text-xl font-semibold text-red-600 font-heading">⚠️ Red Flags to Address</h3>
-                      <div className="bg-red-50 p-4 rounded-lg space-y-2">
-                        {feedbackData.redFlags.map((flag, index) => (
-                          <p key={index} className="font-body text-red-700">• {flag}</p>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex justify-center space-x-4 pt-6">
-                    <Button variant="outline" onClick={resetInterview} className="flex items-center space-x-2 font-ui">
-                      <ArrowLeft size={16} />
-                      <span>Back to Roles</span>
-                    </Button>
-                    <Button className="flex items-center space-x-2 button-gradient font-ui rounded-xl">
-                      <Save size={16} />
-                      <span>Save Attempt</span>
-                    </Button>
-                    <Button variant="outline" onClick={() => setCurrentStep("interview")} className="flex items-center space-x-2 font-ui">
-                      <RotateCcw size={16} />
-                      <span>Try Again</span>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card className="rounded-xl card-shadow">
-                <CardContent className="py-16 text-center">
-                  <p className="text-lg font-body text-gray-600">No feedback data available.</p>
-                </CardContent>
-              </Card>
-            )}
+        {/* Loading State */}
+        {feedbackLoading && (
+          <div className="max-w-2xl mx-auto text-center">
+            <Card className="rounded-2xl card-shadow">
+              <CardContent className="py-12">
+                <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                  <Users className="w-6 h-6 text-primary-foreground" />
+                </div>
+                <h3 className="text-xl font-heading font-bold text-foreground mb-2">
+                  Generating Recruiter Feedback...
+                </h3>
+                <p className="text-foreground font-body">
+                  Our AI recruiter is analyzing your responses and preparing detailed feedback.
+                </p>
+              </CardContent>
+            </Card>
           </div>
         )}
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 py-8 mt-16">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-center space-x-8 text-gray-600 font-ui">
-            <a href="#" className="hover:text-primary transition-colors">About</a>
-            <a href="#" className="hover:text-primary transition-colors">Contact</a>
-            <a href="#" className="hover:text-primary transition-colors">Terms</a>
-          </div>
-        </div>
-      </footer>
+      </div>
     </div>
   );
 };

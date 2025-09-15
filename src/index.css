@@ -8,8 +8,8 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Light Green Background with Black Text Theme */
-    --background: 120 50% 98%; /* Very light green background */
+    /* MyDebate.ai Theme - White background, Black text, Green primary, Indigo secondary */
+    --background: 0 0% 100%; /* Pure white background */
     --foreground: 0 0% 0%; /* Pure black text */
 
     --card: 0 0% 100%; /* Pure white cards */
@@ -18,41 +18,42 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 0%; /* Black text */
 
-    /* Indigo Primary Theme */
-    --primary: 238 50% 50%; /* Indigo #4F46E5 */
-    --primary-foreground: 0 0% 100%; /* White text on indigo */
-    --primary-hover: 238 50% 40%; /* Darker Indigo */
+    /* Green Primary Theme #00C853 */
+    --primary: 142 100% 39%; /* Green #00C853 */
+    --primary-foreground: 0 0% 0%; /* Black text on green */
+    --primary-hover: 142 100% 35%; /* Darker Green */
     
-    --accent: 330 100% 65%; /* Pink #FF4E9B */
-    --accent-foreground: 0 0% 100%; /* White text on pink */
+    /* Indigo Secondary Theme #4F46E5 */
+    --secondary: 238 50% 50%; /* Indigo #4F46E5 */
+    --secondary-foreground: 0 0% 0%; /* Black text on indigo outline */
 
-    --success: 142 100% 40%; /* Green #00C853 for positive actions */
-    --success-foreground: 0 0% 100%;
+    --accent: 142 100% 39%; /* Use green for accent */
+    --accent-foreground: 0 0% 0%; /* Black text */
 
-    --secondary: 220 13% 91%; /* Light Gray #E5E7EB */
-    --secondary-foreground: 0 0% 0%; /* Black text */
+    --success: 142 100% 39%; /* Green #00C853 for positive actions */
+    --success-foreground: 0 0% 0%;
 
-    --muted: 220 13% 96%; /* Very light gray */
+    --muted: 0 0% 96%; /* Very light gray */
     --muted-foreground: 0 0% 0%; /* Black text */
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%; /* Light gray borders */
-    --input: 220 13% 91%; /* Light gray inputs */
-    --ring: 142 100% 40%; /* Green focus ring */
+    --border: 0 0% 90%; /* Light gray borders */
+    --input: 0 0% 100%; /* White inputs */
+    --ring: 238 50% 50%; /* Indigo focus ring */
 
     --radius: 1rem;
 
     /* Modern gradient design tokens */
-    --gradient-hero: linear-gradient(135deg, hsl(120 50% 98%) 0%, hsl(238 50% 50%) 50%, hsl(238 50% 40%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(120 50% 99%) 100%);
-    --gradient-primary: linear-gradient(135deg, hsl(238 50% 50%), hsl(238 50% 40%));
-    --gradient-button: linear-gradient(135deg, hsl(238 50% 50%), hsl(238 50% 40%));
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(142 100% 39%) 50%, hsl(238 50% 50%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(0 0% 99%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(142 100% 39%), hsl(238 50% 50%));
+    --gradient-secondary: linear-gradient(135deg, hsl(238 50% 50%), hsl(142 100% 39%));
     
     --shadow-card: 0 4px 16px hsl(0 0% 0% / 0.08);
-    --shadow-button: 0 2px 8px hsl(238 50% 50% / 0.2);
-    --shadow-hover: 0 8px 24px hsl(238 50% 50% / 0.15);
+    --shadow-button: 0 2px 8px hsl(142 100% 39% / 0.2);
+    --shadow-hover: 0 8px 24px hsl(142 100% 39% / 0.15);
     
     --animation-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
     --animation-smooth: cubic-bezier(0.4, 0, 0.2, 1);
@@ -94,6 +95,22 @@ All colors MUST be HSL.
     font-weight: 400;
     line-height: 1.6;
   }
+
+  /* Typography styles */
+  .font-heading {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+  }
+
+  .font-body {
+    font-family: 'Times New Roman', Times, serif;
+    font-weight: 400;
+  }
+
+  .font-ui {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+  }
 }
 
 @layer components {
@@ -113,11 +130,12 @@ All colors MUST be HSL.
   }
   
   .button-gradient {
-    background: var(--gradient-button);
+    background: var(--gradient-primary);
     box-shadow: var(--shadow-button);
   }
   
   .button-gradient:hover {
+    background: var(--gradient-primary);
     box-shadow: var(--shadow-hover);
     transform: translateY(-1px);
   }
