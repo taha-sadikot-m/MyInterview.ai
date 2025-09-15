@@ -19,25 +19,22 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#worlds" className="text-foreground hover:text-primary transition-colors font-medium">
-              Worlds
-            </a>
-            <a href="#events" className="text-foreground hover:text-primary transition-colors font-medium">
-              Events
+            <a href="#home" className="text-foreground hover:text-primary transition-colors font-medium">
+              Home
             </a>
             <a href="#about" className="text-foreground hover:text-primary transition-colors font-medium">
-              About
+              About US
             </a>
-            <a href="#contact" className="text-foreground hover:text-primary transition-colors font-medium">
-              Contact
+            <a href="#signin" className="text-foreground hover:text-primary transition-colors font-medium">
+              Sign In
+            </a>
+            <a href="#enquiry" className="text-foreground hover:text-primary transition-colors font-medium">
+              Enquiry
             </a>
           </nav>
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="ghost" className="text-foreground hover:text-primary">
-              Sign In
-            </Button>
             <Button variant="default">
               Get Started
             </Button>
@@ -56,23 +53,20 @@ const Header = () => {
         {isMenuOpen && (
           <div className="md:hidden py-4 space-y-4 border-t border-border">
             <nav className="flex flex-col space-y-4">
-              <a href="#worlds" className="text-foreground hover:text-primary transition-colors font-medium">
-                Worlds
-              </a>
-              <a href="#events" className="text-foreground hover:text-primary transition-colors font-medium">
-                Events
+              <a href="#home" className="text-foreground hover:text-primary transition-colors font-medium">
+                Home
               </a>
               <a href="#about" className="text-foreground hover:text-primary transition-colors font-medium">
-                About
+                About US
               </a>
-              <a href="#contact" className="text-foreground hover:text-primary transition-colors font-medium">
-                Contact
+              <a href="#signin" className="text-foreground hover:text-primary transition-colors font-medium">
+                Sign In
+              </a>
+              <a href="#enquiry" className="text-foreground hover:text-primary transition-colors font-medium">
+                Enquiry
               </a>
             </nav>
             <div className="flex flex-col space-y-2 pt-4">
-              <Button variant="ghost" className="justify-start text-foreground hover:text-primary">
-                Sign In
-              </Button>
               <Button variant="default" className="justify-start">
                 Get Started
               </Button>

@@ -8,42 +8,42 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* MyDebate.ai Theme - Green gradient design */
-    --background: 255 255 255; /* White background */
-    --foreground: 0 0 0; /* Black text */
+    /* MyDebate.ai Theme - Clean white with green accents */
+    --background: 0 0% 100%; /* Pure White */
+    --foreground: 0 0% 0%; /* Pure Black */
 
-    --card: 255 255 255; /* White cards */
-    --card-foreground: 0 0 0; /* Black text on cards */
+    --card: 0 0% 100%; /* White cards */
+    --card-foreground: 0 0% 0%; /* Black text on cards */
 
-    --popover: 255 255 255;
-    --popover-foreground: 0 0 0;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
 
-    /* Green Primary - matching MyDebate.ai */
-    --primary: 142 100 40; /* Bright Green #00C853 */
-    --primary-foreground: 255 255 255; /* White text on green */
+    /* Green Primary */
+    --primary: 142 100% 40%; /* Bright Green #00C853 */
+    --primary-foreground: 0 0% 100%; /* White text on green */
     
-    --accent: 142 100 40; /* Same green for accent */
-    --accent-foreground: 255 255 255; /* White text on green */
+    --accent: 142 100% 40%; /* Same green for accent */
+    --accent-foreground: 0 0% 100%; /* White text on green */
 
-    --success: 142 100 40; /* Green for success */
-    --success-foreground: 255 255 255;
+    --success: 142 100% 40%; /* Green for success */
+    --success-foreground: 0 0% 100%;
 
-    --secondary: 0 0 90; /* Light gray */
-    --secondary-foreground: 0 0 0; /* Black text */
+    --secondary: 0 0% 96%; /* Very light gray */
+    --secondary-foreground: 0 0% 0%; /* Black text */
 
-    --muted: 0 0 95; /* Very light gray */
-    --muted-foreground: 0 0 40; /* Dark gray text */
+    --muted: 0 0% 96%; /* Very light gray */
+    --muted-foreground: 0 0% 45%; /* Dark gray text */
 
-    --destructive: 0 84 60;
-    --destructive-foreground: 255 255 255;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0 85; /* Light gray borders */
-    --input: 0 0 95; /* Light gray inputs */
-    --ring: 142 100 40; /* Green focus ring */
+    --border: 0 0% 90%; /* Light gray borders */
+    --input: 0 0% 96%; /* Light gray inputs */
+    --ring: 142 100% 40%; /* Green focus ring */
 
     --radius: 1rem;
 
-    /* MyDebate.ai gradient design tokens */
+    /* Clean gradient design tokens */
     --gradient-hero: linear-gradient(135deg, hsl(142 100% 40%) 0%, hsl(0 0% 100%) 50%, hsl(0 0% 0%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(0 0% 98%) 100%);
     --gradient-green: linear-gradient(135deg, hsl(142 100% 40%), hsl(142 100% 50%));
