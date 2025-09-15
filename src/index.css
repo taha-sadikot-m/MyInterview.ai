@@ -8,50 +8,48 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* MySpeech.ai Design System */
-    --background: 249 250 251; /* Soft White #F9FAFB */
-    --foreground: 30 41 134; /* Royal Blue for text */
+    /* Clean White Background with Black Text */
+    --background: 255 255 255; /* Pure White */
+    --foreground: 0 0 0; /* Pure Black */
 
     --card: 255 255 255; /* Pure white cards */
-    --card-foreground: 30 41 134;
+    --card-foreground: 0 0 0; /* Black text on cards */
 
     --popover: 255 255 255;
-    --popover-foreground: 30 41 134;
+    --popover-foreground: 0 0 0;
 
-    /* Royal Blue Primary #1E3A8A */
-    --primary: 219 69 138; /* Royal Blue */
-    --primary-foreground: 255 255 255;
+    /* Subtle grays for accents */
+    --primary: 0 0 0; /* Black primary */
+    --primary-foreground: 255 255 255; /* White on black */
     
-    /* Electric Purple Accent #9333EA */
-    --accent: 271 91 92; /* Electric Purple */
-    --accent-foreground: 255 255 255;
+    --accent: 240 5 96; /* Very light gray */
+    --accent-foreground: 0 0 0; /* Black text on light gray */
 
-    /* Emerald Green Support #10B981 */
-    --success: 158 64 52; /* Emerald Green */
+    --success: 142 76 36; /* Subtle green */
     --success-foreground: 255 255 255;
 
-    --secondary: 244 244 245; /* Light gray */
-    --secondary-foreground: 30 41 134;
+    --secondary: 0 0 96; /* Very light gray */
+    --secondary-foreground: 0 0 20; /* Dark gray text */
 
-    --muted: 248 250 252;
-    --muted-foreground: 100 116 139;
+    --muted: 0 0 96; /* Light gray */
+    --muted-foreground: 0 0 40; /* Medium gray text */
 
     --destructive: 0 84 60;
     --destructive-foreground: 255 255 255;
 
-    --border: 226 232 240;
-    --input: 226 232 240;
-    --ring: 219 69 138;
+    --border: 0 0 90; /* Light gray borders */
+    --input: 0 0 90; /* Light gray inputs */
+    --ring: 0 0 0; /* Black focus ring */
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
-    /* Custom MySpeech.ai tokens */
-    --gradient-primary: linear-gradient(135deg, hsl(219 69% 38%), hsl(271 91% 62%));
-    --gradient-accent: linear-gradient(45deg, hsl(271 91% 62%), hsl(158 64% 52%));
-    --gradient-hero: linear-gradient(135deg, hsl(219 69% 38%) 0%, hsl(271 91% 62%) 50%, hsl(158 64% 52%) 100%);
+    /* Minimal design tokens */
+    --gradient-primary: linear-gradient(135deg, hsl(0 0% 0%), hsl(0 0% 20%));
+    --gradient-accent: linear-gradient(45deg, hsl(0 0% 95%), hsl(0 0% 98%));
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 98%) 0%, hsl(0 0% 100%) 100%);
     
-    --shadow-glow: 0 0 40px hsl(271 91% 62% / 0.3);
-    --shadow-card: 0 10px 30px -5px hsl(219 69% 38% / 0.1);
+    --shadow-glow: 0 0 20px hsl(0 0% 0% / 0.1);
+    --shadow-card: 0 4px 12px hsl(0 0% 0% / 0.1);
     
     --animation-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
     --animation-smooth: cubic-bezier(0.4, 0, 0.2, 1);
@@ -118,7 +116,8 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground;
+    font-family: "Times New Roman", Times, serif;
   }
 }
 
@@ -128,10 +127,7 @@ All colors MUST be HSL.
   }
   
   .gradient-text {
-    background: var(--gradient-primary);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: hsl(var(--foreground));
   }
   
   .glow-effect {
@@ -157,6 +153,6 @@ All colors MUST be HSL.
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px hsl(271 91% 62% / 0.3); }
-  50% { box-shadow: 0 0 40px hsl(271 91% 62% / 0.6); }
+  0%, 100% { box-shadow: 0 0 10px hsl(0 0% 0% / 0.1); }
+  50% { box-shadow: 0 0 20px hsl(0 0% 0% / 0.2); }
 }

@@ -68,9 +68,9 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        heading: ['Poppins', 'Inter', 'system-ui', 'sans-serif'],
-        body: ['Roboto', 'system-ui', 'sans-serif'],
+        sans: ['"Times New Roman"', 'Times', 'serif'],
+        heading: ['"Times New Roman"', 'Times', 'serif'],
+        body: ['"Times New Roman"', 'Times', 'serif'],
       },
       keyframes: {
         "accordion-down": {
