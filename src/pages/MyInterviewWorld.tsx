@@ -8,6 +8,114 @@ import { Progress } from "@/components/ui/progress";
 import { Mic, Volume2, Send, RotateCcw, Save, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+// AI Evaluation System Constants
+const AI_EVALUATION_PROMPT = `You are a senior campus recruiter and panel interviewer.
+Evaluate fresher candidates using real-world hiring signals.
+Be concise, specific, and evidence-based. Avoid generic fluff.
+Always justify ratings using short quotes extracted from the candidate's answers.
+
+Scoring rules:
+- Give competency ratings 1–5 (whole numbers only).
+- Overall recommendation must be one of: "Strong Hire", "Hire", "Leaning No", "No Hire".
+- If evidence is weak, lower the score; do not infer beyond what is spoken/written.
+- Prefer the STAR framework for behavioural answers (Situation, Task, Action, Result).
+
+Output rules:
+- Return ONLY valid JSON matching the provided schema. No extra text.
+- Keep each array item short (≤20 words).
+- If information is missing, set a sensible default and explain in "notes".
+
+RUBRIC (fresher interview):
+- Communication: clarity, brevity, vocabulary, confidence
+- StructuredThinkingSTAR: logical flow, STAR usage for behaviourals
+- TechnicalFundamentals: correctness of core concepts for the role
+- ProblemSolving: approach, edge cases, trade-offs
+- CultureOwnership: initiative, ownership mindset, collaboration
+- Coachability: openness to feedback, self-awareness
+
+JSON SCHEMA (strict):
+{
+  "overall": "Strong Hire | Hire | Leaning No | No Hire",
+  "competencies": {
+    "Communication": 1,
+    "StructuredThinkingSTAR": 1,
+    "TechnicalFundamentals": 1,
+    "ProblemSolving": 1,
+    "CultureOwnership": 1,
+    "Coachability": 1
+  },
+  "evidence": ["short quote 1", "short quote 2", "short quote 3"],
+  "strengths": ["...", "...", "..."],
+  "improvements": ["...", "...", "..."],
+  "redFlags": ["..."], 
+  "followUps": ["...", "...", "..."],
+  "actionPlan": [
+    {"day": 1, "task": "..."},
+    {"day": 2, "task": "..."},
+    {"day": 3, "task": "..."},
+    {"day": 4, "task": "..."},
+    {"day": 5, "task": "..."}
+  ],
+  "starReframe": {
+    "before": "1 behavioural answer excerpt (<=30 words)",
+    "after": "Rewrite using STAR in <=60 words"
+  },
+  "atsKeywords": ["role keywords", "skills", "tools"],
+  "score": 0,
+  "notes": "assessor notes"
+}
+
+Score:
+- Compute 0–10 as: round( (sum of 6 competencies) / 6 * 2 ).
+- Put the value in "score".
+
+TASK: Evaluate a fresher interview.
+
+CONTEXT:
+- Company: {{company}}
+- Role: {{role}}
+- Mode: interview
+- Topics: {{topicsCsv}}
+- RubricHints: ["Communication","StructuredThinkingSTAR","TechnicalFundamentals","ProblemSolving","CultureOwnership","Coachability"]
+
+QUESTIONS & ANSWERS (in order):
+{{qaContent}}
+
+CONSTRAINTS:
+- Rate ONLY what is evident in the answers.
+- Extract 2–3 short quotes from the answers for "evidence".
+- Choose relevant ATS keywords for a fresher in this role (≤10 chips).
+- Provide 3 strengths, 3 improvements, 3 follow-up questions.
+- Provide a 5-day action plan (10–20 min/day).
+- Include 1 STAR "before→after" rewrite from any behavioural answer.
+
+Return valid JSON per schema.`;
+
+interface FeedbackData {
+  overall: string;
+  competencies: {
+    Communication: number;
+    StructuredThinkingSTAR: number;
+    TechnicalFundamentals: number;
+    ProblemSolving: number;
+    CultureOwnership: number;
+    Coachability: number;
+  };
+  evidence: string[];
+  strengths: string[];
+  improvements: string[];
+  redFlags: string[];
+  followUps: string[];
+  actionPlan: Array<{day: number; task: string}>;
+  starReframe: {
+    before: string;
+    after: string;
+  };
+  atsKeywords: string[];
+  score: number;
+  notes: string;
+}
+
 // Comprehensive company-role based question bank for freshers
 const COMPANY_ROLE_QUESTIONS = {
   "TCS": {
@@ -334,6 +442,11 @@ interface InterviewData {
   currentQuestion: number;
 }
 
+interface QAData {
+  question: string;
+  answer: string;
+}
+
 const MyInterviewWorld = () => {
   const [currentStep, setCurrentStep] = useState<Step>("setup");
   const [interviewData, setInterviewData] = useState<InterviewData>({
@@ -347,7 +460,22 @@ const MyInterviewWorld = () => {
   const [currentAnswer, setCurrentAnswer] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [aiMode, setAiMode] = useState(false);
+  const [feedbackData, setFeedbackData] = useState<FeedbackData | null>(null);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
   const { toast } = useToast();
+
+  // Helper function to get suggested topics
+  const getSuggestedTopics = (role: string) => {
+    return SUGGESTED_TOPICS[role as keyof typeof SUGGESTED_TOPICS] || [];
+  };
+
+  // Helper function to build QA data
+  const getQAData = (): QAData[] => {
+    return interviewData.questions.map((question, index) => ({
+      question,
+      answer: interviewData.answers[index] || ""
+    }));
+  };
 
   const handleStartInterview = () => {
     if (!interviewData.company || !interviewData.role || !interviewData.experience) {
@@ -402,11 +530,7 @@ const MyInterviewWorld = () => {
         description: "Next question loaded."
       });
     } else {
-      setCurrentStep("feedback");
-      toast({
-        title: "Interview Complete!",
-        description: "Generating your feedback..."
-      });
+      handleGetFeedback();
     }
   };
 
@@ -446,6 +570,95 @@ const MyInterviewWorld = () => {
     }
   };
 
+  const handleGetFeedback = async () => {
+    setCurrentStep("feedback");
+    setFeedbackLoading(true);
+    
+    try {
+      // Build QA content for the prompt
+      const qaData = getQAData();
+      const qaContent = qaData.map((qa, index) => 
+        `Q${index + 1}: ${qa.question}\nA${index + 1}: ${qa.answer || "No answer"}`
+      ).join('\n\n');
+      
+      // Get suggested topics for context
+      const topicsCsv = getSuggestedTopics(interviewData.role).join(', ');
+      
+      // Replace template variables
+      let evaluationPrompt = AI_EVALUATION_PROMPT
+        .replace('{{company}}', interviewData.company)
+        .replace('{{role}}', interviewData.role)
+        .replace('{{topicsCsv}}', topicsCsv)
+        .replace('{{qaContent}}', qaContent);
+      
+      // Simulate AI call (replace with actual API call in production)
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Mock feedback response matching the schema
+      const mockFeedback: FeedbackData = {
+        overall: "Hire",
+        competencies: {
+          Communication: 4,
+          StructuredThinkingSTAR: 3,
+          TechnicalFundamentals: 4,
+          ProblemSolving: 4,
+          CultureOwnership: 3,
+          Coachability: 4
+        },
+        evidence: [
+          "Good technical understanding shown",
+          "Clear communication style",
+          "Proactive learning attitude"
+        ],
+        strengths: [
+          "Strong foundational knowledge",
+          "Good problem-solving approach",
+          "Enthusiasm for learning"
+        ],
+        improvements: [
+          "Practice STAR format for behavioral questions",
+          "Add more specific examples",
+          "Improve depth in technical explanations"
+        ],
+        redFlags: [],
+        followUps: [
+          "Can you walk through a specific project challenge?",
+          "How do you stay updated with technology trends?",
+          "Describe a time you had to learn something quickly"
+        ],
+        actionPlan: [
+          {day: 1, task: "Practice 2 behavioral questions using STAR format"},
+          {day: 2, task: "Review core technical concepts for your role"},
+          {day: 3, task: "Prepare specific project examples with metrics"},
+          {day: 4, task: "Mock interview with peer focusing on communication"},
+          {day: 5, task: "Research company culture and recent news"}
+        ],
+        starReframe: {
+          before: "I worked on a team project in college.",
+          after: "S: Final year capstone project; T: Lead 4-member team; A: Coordinated sprints, resolved conflicts; R: Delivered on time, 95% grade."
+        },
+        atsKeywords: ["Java", "SQL", "Problem Solving", "Team Work", "Communication", "Fresh Graduate", "SDLC", "Agile"],
+        score: 7,
+        notes: "Good foundation, needs practice on structured responses"
+      };
+      
+      setFeedbackData(mockFeedback);
+      toast({
+        title: "Feedback Generated!",
+        description: "Your interview analysis is ready."
+      });
+    } catch (error) {
+      console.error('Feedback generation failed:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate feedback. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setFeedbackLoading(false);
+    }
+  };
+
   const resetInterview = () => {
     setCurrentStep("setup");
     setInterviewData({
@@ -457,6 +670,7 @@ const MyInterviewWorld = () => {
       currentQuestion: 0
     });
     setCurrentAnswer("");
+    setFeedbackData(null);
   };
 
   const progress = currentStep === "interview" ? 
@@ -684,85 +898,173 @@ const MyInterviewWorld = () => {
         {/* Step 3: Feedback */}
         {currentStep === "feedback" && (
           <div className="max-w-4xl mx-auto space-y-8">
-            <Card className="rounded-xl card-shadow">
-              <CardHeader className="text-center">
-                <CardTitle className="text-3xl font-bold text-gray-900 font-heading">Interview Feedback</CardTitle>
-                <CardDescription className="text-lg font-body">
-                  AI-powered analysis of your interview performance
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Overall Score */}
-                <div className="text-center bg-success/10 p-6 rounded-lg">
-                  <div className="text-4xl font-bold text-success mb-2 font-heading">8.5/10</div>
-                  <div className="text-lg text-gray-700 font-body">Overall Interview Score</div>
-                </div>
-
-                {/* Rubric Breakdown */}
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4 font-heading">Strengths</h3>
-                    <ul className="space-y-2">
-                      <li className="flex items-start space-x-2">
-                        <span className="text-success">✓</span>
-                        <span className="font-body">Clear and structured responses</span>
-                      </li>
-                      <li className="flex items-start space-x-2">
-                        <span className="text-success">✓</span>
-                        <span className="font-body">Good technical knowledge demonstrated</span>
-                      </li>
-                      <li className="flex items-start space-x-2">
-                        <span className="text-success">✓</span>
-                        <span className="font-body">Confident delivery and communication</span>
-                      </li>
-                    </ul>
+            {feedbackLoading ? (
+              <Card className="rounded-xl card-shadow">
+                <CardContent className="py-16 text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                  <p className="text-lg font-body text-gray-600">Analyzing your responses...</p>
+                </CardContent>
+              </Card>
+            ) : feedbackData ? (
+              <Card className="rounded-xl card-shadow">
+                <CardHeader className="text-center">
+                  <CardTitle className="text-3xl font-bold text-gray-900 font-heading">Interview Feedback</CardTitle>
+                  <CardDescription className="text-lg font-body">
+                    AI-powered analysis of your interview performance
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Overall Score & Recommendation */}
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="text-center bg-success/10 p-6 rounded-lg">
+                      <div className="text-4xl font-bold text-success mb-2 font-heading">{feedbackData.score}/10</div>
+                      <div className="text-lg text-gray-700 font-body">Interview Score</div>
+                    </div>
+                    <div className="text-center bg-primary/10 p-6 rounded-lg">
+                      <div className="text-2xl font-bold text-primary mb-2 font-heading">{feedbackData.overall}</div>
+                      <div className="text-lg text-gray-700 font-body">Recommendation</div>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4 font-heading">Areas for Improvement</h3>
-                    <ul className="space-y-2">
-                      <li className="flex items-start space-x-2">
-                        <span className="text-orange-500">→</span>
-                        <span className="font-body">Provide more concrete examples</span>
-                      </li>
-                      <li className="flex items-start space-x-2">
-                        <span className="text-orange-500">→</span>
-                        <span className="font-body">Elaborate on problem-solving approach</span>
-                      </li>
-                      <li className="flex items-start space-x-2">
-                        <span className="text-orange-500">→</span>
-                        <span className="font-body">Ask clarifying questions when needed</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
 
-                <div className="border-t pt-6">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4 font-heading">Practice Tips</h3>
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <ul className="space-y-2 text-blue-800 font-body">
-                      <li>• Practice explaining technical concepts in simple terms</li>
-                      <li>• Prepare STAR method examples for behavioral questions</li>
-                      <li>• Research the company's recent projects and technologies</li>
-                    </ul>
+                  {/* Competency Scores */}
+                  <div className="space-y-3">
+                    <h3 className="text-xl font-semibold text-gray-900 font-heading">Competency Breakdown</h3>
+                    {Object.entries(feedbackData.competencies).map(([competency, score]) => (
+                      <div key={competency} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                        <span className="font-body font-medium">{competency.replace('StructuredThinkingSTAR', 'Structured Thinking & STAR')}</span>
+                        <div className="flex items-center space-x-2">
+                          <Progress value={score * 20} className="w-24 h-2" />
+                          <span className="font-ui font-bold text-primary">{score}/5</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
 
-                <div className="flex justify-center space-x-4 pt-6">
-                  <Button variant="outline" onClick={resetInterview} className="flex items-center space-x-2 font-ui">
-                    <ArrowLeft size={16} />
-                    <span>Back to Roles</span>
-                  </Button>
-                  <Button className="flex items-center space-x-2 button-gradient font-ui rounded-xl">
-                    <Save size={16} />
-                    <span>Save Attempt</span>
-                  </Button>
-                  <Button variant="outline" onClick={() => setCurrentStep("interview")} className="flex items-center space-x-2 font-ui">
-                    <RotateCcw size={16} />
-                    <span>Try Again</span>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                  {/* Evidence Quotes */}
+                  <div className="space-y-3">
+                    <h3 className="text-xl font-semibold text-gray-900 font-heading">Key Evidence</h3>
+                    <div className="bg-blue-50 p-4 rounded-lg space-y-2">
+                      {feedbackData.evidence.map((quote, index) => (
+                        <p key={index} className="font-body italic text-blue-800">"{quote}"</p>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Strengths & Improvements */}
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-4 font-heading">Strengths</h3>
+                      <ul className="space-y-2">
+                        {feedbackData.strengths.map((strength, index) => (
+                          <li key={index} className="flex items-start space-x-2">
+                            <span className="text-success">✓</span>
+                            <span className="font-body">{strength}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-4 font-heading">Areas for Improvement</h3>
+                      <ul className="space-y-2">
+                        {feedbackData.improvements.map((improvement, index) => (
+                          <li key={index} className="flex items-start space-x-2">
+                            <span className="text-orange-500">→</span>
+                            <span className="font-body">{improvement}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* STAR Reframe */}
+                  {feedbackData.starReframe.before && (
+                    <div className="space-y-3">
+                      <h3 className="text-xl font-semibold text-gray-900 font-heading">STAR Method Improvement</h3>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div className="bg-red-50 p-4 rounded-lg">
+                          <h4 className="font-semibold text-red-800 mb-2 font-ui">Before:</h4>
+                          <p className="font-body text-red-700">"{feedbackData.starReframe.before}"</p>
+                        </div>
+                        <div className="bg-green-50 p-4 rounded-lg">
+                          <h4 className="font-semibold text-green-800 mb-2 font-ui">After (STAR):</h4>
+                          <p className="font-body text-green-700">"{feedbackData.starReframe.after}"</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Action Plan */}
+                  <div className="space-y-3">
+                    <h3 className="text-xl font-semibold text-gray-900 font-heading">5-Day Action Plan</h3>
+                    <div className="space-y-2">
+                      {feedbackData.actionPlan.map((plan, index) => (
+                        <div key={index} className="flex items-center space-x-3 bg-gray-50 p-3 rounded-lg">
+                          <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-bold font-ui">
+                            {plan.day}
+                          </div>
+                          <span className="font-body">{plan.task}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* ATS Keywords */}
+                  <div className="space-y-3">
+                    <h3 className="text-xl font-semibold text-gray-900 font-heading">ATS Keywords for Your Resume</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {feedbackData.atsKeywords.map((keyword, index) => (
+                        <Badge key={index} variant="outline" className="bg-accent/10 text-accent font-ui">
+                          {keyword}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Follow-up Questions */}
+                  <div className="space-y-3">
+                    <h3 className="text-xl font-semibold text-gray-900 font-heading">Follow-up Questions to Practice</h3>
+                    <div className="bg-yellow-50 p-4 rounded-lg space-y-2">
+                      {feedbackData.followUps.map((question, index) => (
+                        <p key={index} className="font-body text-yellow-800">• {question}</p>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Red Flags */}
+                  {feedbackData.redFlags.length > 0 && (
+                    <div className="space-y-3">
+                      <h3 className="text-xl font-semibold text-red-600 font-heading">⚠️ Red Flags to Address</h3>
+                      <div className="bg-red-50 p-4 rounded-lg space-y-2">
+                        {feedbackData.redFlags.map((flag, index) => (
+                          <p key={index} className="font-body text-red-700">• {flag}</p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex justify-center space-x-4 pt-6">
+                    <Button variant="outline" onClick={resetInterview} className="flex items-center space-x-2 font-ui">
+                      <ArrowLeft size={16} />
+                      <span>Back to Roles</span>
+                    </Button>
+                    <Button className="flex items-center space-x-2 button-gradient font-ui rounded-xl">
+                      <Save size={16} />
+                      <span>Save Attempt</span>
+                    </Button>
+                    <Button variant="outline" onClick={() => setCurrentStep("interview")} className="flex items-center space-x-2 font-ui">
+                      <RotateCcw size={16} />
+                      <span>Try Again</span>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="rounded-xl card-shadow">
+                <CardContent className="py-16 text-center">
+                  <p className="text-lg font-body text-gray-600">No feedback data available.</p>
+                </CardContent>
+              </Card>
+            )}
           </div>
         )}
       </main>
