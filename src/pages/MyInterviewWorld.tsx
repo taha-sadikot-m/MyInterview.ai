@@ -209,22 +209,23 @@ const MyInterviewWorld = () => {
               </div>
               <div>
                 <h1 className="text-xl md:text-2xl font-bold text-gray-900 font-heading">MyInterview World</h1>
-                <p className="text-sm text-gray-600 font-body">Prepare. Practice. Perform.</p>
+                <p className="text-sm text-gray-600 font-body italic">Prepare. Practice. Perform.</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium">AI Mode</span>
+                <span className="text-sm font-medium font-ui">AI Mode</span>
                 <Button
                   variant={aiMode ? "default" : "outline"}
                   size="sm"
                   onClick={() => setAiMode(!aiMode)}
+                  className="font-ui"
                 >
                   {aiMode ? "AI" : "Free"}
                 </Button>
               </div>
               {currentStep === "interview" && (
-                <div className="text-sm font-medium">
+                <div className="text-sm font-medium font-ui">
                   Question {interviewData.currentQuestion + 1}/{interviewData.questions.length}
                 </div>
               )}
@@ -243,14 +244,14 @@ const MyInterviewWorld = () => {
         {currentStep === "setup" && (
           <Card className="max-w-2xl mx-auto card-shadow card-hover rounded-xl">
             <CardHeader className="text-center">
-              <CardTitle className="text-3xl font-bold text-gray-900">Choose Your Role</CardTitle>
-              <CardDescription className="text-lg">
+              <CardTitle className="text-3xl font-bold text-gray-900 font-heading">Choose Your Role</CardTitle>
+              <CardDescription className="text-lg font-body">
                 Select your target company and position for interview practice
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Company</label>
+                <label className="text-sm font-medium text-gray-700 font-ui">Company</label>
                 <Select value={interviewData.company} onValueChange={(value) => 
                   setInterviewData(prev => ({ ...prev, company: value }))
                 }>
@@ -266,7 +267,7 @@ const MyInterviewWorld = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Job Role</label>
+                <label className="text-sm font-medium text-gray-700 font-ui">Job Role</label>
                 <Select value={interviewData.role} onValueChange={(value) => 
                   setInterviewData(prev => ({ ...prev, role: value }))
                 }>
@@ -282,7 +283,7 @@ const MyInterviewWorld = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Experience Level</label>
+                <label className="text-sm font-medium text-gray-700 font-ui">Experience Level</label>
                 <Select value={interviewData.experience} onValueChange={(value) => 
                   setInterviewData(prev => ({ ...prev, experience: value }))
                 }>
@@ -299,7 +300,7 @@ const MyInterviewWorld = () => {
 
               {interviewData.role && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Suggested Topics</label>
+                  <label className="text-sm font-medium text-gray-700 font-ui">Suggested Topics</label>
                   <div className="flex flex-wrap gap-2">
                     {SUGGESTED_TOPICS[interviewData.role as keyof typeof SUGGESTED_TOPICS]?.map(topic => (
                       <Badge key={topic} variant="secondary" className="bg-green-100 text-green-800">
@@ -312,7 +313,7 @@ const MyInterviewWorld = () => {
 
               <Button 
                 onClick={handleStartInterview}
-                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg font-semibold"
+                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg font-semibold font-ui"
                 size="lg"
               >
                 Start Interview
@@ -327,13 +328,13 @@ const MyInterviewWorld = () => {
             {/* Question Panel */}
             <Card className="rounded-xl card-shadow">
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
+                <CardTitle className="flex items-center justify-between font-heading">
                   <span>Interview Question</span>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handleSpeakQuestion}
-                    className="flex items-center space-x-2"
+                    className="flex items-center space-x-2 font-ui"
                   >
                     <Volume2 size={16} />
                     <span>Ask Aloud</span>
@@ -342,11 +343,11 @@ const MyInterviewWorld = () => {
               </CardHeader>
               <CardContent>
                 <div className="bg-gray-50 p-6 rounded-lg border">
-                  <p className="text-lg font-medium text-gray-900">
+                  <p className="text-lg font-medium text-gray-900 font-body">
                     {interviewData.questions[interviewData.currentQuestion]}
                   </p>
                 </div>
-                <div className="mt-4 text-sm text-gray-600">
+                <div className="mt-4 text-sm text-gray-600 font-body">
                   Take your time to think through your answer. You can respond via text or audio recording.
                 </div>
               </CardContent>
@@ -355,7 +356,7 @@ const MyInterviewWorld = () => {
             {/* Answer Panel */}
             <Card className="rounded-xl card-shadow">
               <CardHeader>
-                <CardTitle>Your Answer</CardTitle>
+                <CardTitle className="font-heading">Your Answer</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-4">
@@ -371,7 +372,7 @@ const MyInterviewWorld = () => {
                     <Button
                       variant={isRecording ? "destructive" : "outline"}
                       onClick={handleRecordToggle}
-                      className="flex items-center space-x-2"
+                      className="flex items-center space-x-2 font-ui"
                     >
                       <Mic size={16} />
                       <span>{isRecording ? "Stop Recording" : "Record Audio"}</span>
@@ -380,7 +381,7 @@ const MyInterviewWorld = () => {
                     <Button
                       onClick={handleAnswerSubmit}
                       disabled={!currentAnswer.trim()}
-                      className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
+                      className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 font-ui"
                     >
                       <Send size={16} />
                       <span>Submit Answer</span>
@@ -397,60 +398,60 @@ const MyInterviewWorld = () => {
           <div className="max-w-4xl mx-auto space-y-8">
             <Card className="rounded-xl card-shadow">
               <CardHeader className="text-center">
-                <CardTitle className="text-3xl font-bold text-gray-900">Interview Feedback</CardTitle>
-                <CardDescription className="text-lg">
+                <CardTitle className="text-3xl font-bold text-gray-900 font-heading">Interview Feedback</CardTitle>
+                <CardDescription className="text-lg font-body">
                   AI-powered analysis of your interview performance
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Overall Score */}
                 <div className="text-center bg-green-50 p-6 rounded-lg">
-                  <div className="text-4xl font-bold text-green-600 mb-2">8.5/10</div>
-                  <div className="text-lg text-gray-700">Overall Interview Score</div>
+                  <div className="text-4xl font-bold text-green-600 mb-2 font-heading">8.5/10</div>
+                  <div className="text-lg text-gray-700 font-body">Overall Interview Score</div>
                 </div>
 
                 {/* Rubric Breakdown */}
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">Strengths</h3>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-4 font-heading">Strengths</h3>
                     <ul className="space-y-2">
                       <li className="flex items-start space-x-2">
                         <span className="text-green-500">✓</span>
-                        <span>Clear and structured responses</span>
+                        <span className="font-body">Clear and structured responses</span>
                       </li>
                       <li className="flex items-start space-x-2">
                         <span className="text-green-500">✓</span>
-                        <span>Good technical knowledge demonstrated</span>
+                        <span className="font-body">Good technical knowledge demonstrated</span>
                       </li>
                       <li className="flex items-start space-x-2">
                         <span className="text-green-500">✓</span>
-                        <span>Confident delivery and communication</span>
+                        <span className="font-body">Confident delivery and communication</span>
                       </li>
                     </ul>
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">Areas for Improvement</h3>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-4 font-heading">Areas for Improvement</h3>
                     <ul className="space-y-2">
                       <li className="flex items-start space-x-2">
                         <span className="text-orange-500">→</span>
-                        <span>Provide more concrete examples</span>
+                        <span className="font-body">Provide more concrete examples</span>
                       </li>
                       <li className="flex items-start space-x-2">
                         <span className="text-orange-500">→</span>
-                        <span>Elaborate on problem-solving approach</span>
+                        <span className="font-body">Elaborate on problem-solving approach</span>
                       </li>
                       <li className="flex items-start space-x-2">
                         <span className="text-orange-500">→</span>
-                        <span>Ask clarifying questions when needed</span>
+                        <span className="font-body">Ask clarifying questions when needed</span>
                       </li>
                     </ul>
                   </div>
                 </div>
 
                 <div className="border-t pt-6">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4">Practice Tips</h3>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4 font-heading">Practice Tips</h3>
                   <div className="bg-blue-50 p-4 rounded-lg">
-                    <ul className="space-y-2 text-blue-800">
+                    <ul className="space-y-2 text-blue-800 font-body">
                       <li>• Practice explaining technical concepts in simple terms</li>
                       <li>• Prepare STAR method examples for behavioral questions</li>
                       <li>• Research the company's recent projects and technologies</li>
@@ -459,15 +460,15 @@ const MyInterviewWorld = () => {
                 </div>
 
                 <div className="flex justify-center space-x-4 pt-6">
-                  <Button variant="outline" onClick={resetInterview} className="flex items-center space-x-2">
+                  <Button variant="outline" onClick={resetInterview} className="flex items-center space-x-2 font-ui">
                     <ArrowLeft size={16} />
                     <span>Back to Roles</span>
                   </Button>
-                  <Button className="flex items-center space-x-2 bg-green-600 hover:bg-green-700">
+                  <Button className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 font-ui">
                     <Save size={16} />
                     <span>Save Attempt</span>
                   </Button>
-                  <Button variant="outline" onClick={() => setCurrentStep("interview")} className="flex items-center space-x-2">
+                  <Button variant="outline" onClick={() => setCurrentStep("interview")} className="flex items-center space-x-2 font-ui">
                     <RotateCcw size={16} />
                     <span>Try Again</span>
                   </Button>

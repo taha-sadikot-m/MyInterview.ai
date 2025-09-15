@@ -19,23 +19,23 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#home" className="text-foreground hover:text-primary transition-colors font-medium">
+            <a href="#home" className="text-foreground hover:text-primary transition-colors font-medium font-ui">
               Home
             </a>
-            <a href="#about" className="text-foreground hover:text-primary transition-colors font-medium">
+            <a href="#about" className="text-foreground hover:text-primary transition-colors font-medium font-ui">
               About US
             </a>
-            <a href="#signin" className="text-foreground hover:text-primary transition-colors font-medium">
+            <a href="#signin" className="text-foreground hover:text-primary transition-colors font-medium font-ui">
               Sign In
             </a>
-            <a href="#enquiry" className="text-foreground hover:text-primary transition-colors font-medium">
+            <a href="#enquiry" className="text-foreground hover:text-primary transition-colors font-medium font-ui">
               Enquiry
             </a>
           </nav>
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="default">
+            <Button variant="default" className="font-ui">
               Get Started
             </Button>
           </div>

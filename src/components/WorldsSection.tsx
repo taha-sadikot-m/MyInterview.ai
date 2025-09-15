@@ -49,11 +49,11 @@ const WorldsSection = () => {
               </CardHeader>
               <CardContent>
                 {world.link ? (
-                  <Button variant="outline" className="w-full font-semibold" asChild>
+                  <Button variant="outline" className="w-full font-semibold font-ui" asChild>
                     <a href={world.link}>{world.buttonText}</a>
                   </Button>
                 ) : (
-                  <Button variant="outline" className="w-full font-semibold">
+                  <Button variant="outline" className="w-full font-semibold font-ui">
                     {world.buttonText}
                   </Button>
                 )}

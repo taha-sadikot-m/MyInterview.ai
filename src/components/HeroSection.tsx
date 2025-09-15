@@ -18,20 +18,21 @@ const HeroSection = () => {
             <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold text-foreground font-heading">
               Empowering the speaking super star in you!
             </h2>
-            <p className="text-lg md:text-xl lg:text-2xl text-muted-foreground font-medium font-body">
+            <p className="text-lg md:text-xl lg:text-2xl text-muted-foreground font-medium font-body italic">
               Prepare. Practice. Perform.
             </p>
           </div>
 
-            <div className="pt-8">
-              <Button 
-                variant="hero" 
-                size="lg"
-                onClick={() => setIsSignupOpen(true)}
-              >
-                Start Your Journey 🚀
-              </Button>
-            </div>
+          <div className="pt-8">
+            <Button 
+              variant="hero" 
+              size="lg"
+              onClick={() => setIsSignupOpen(true)}
+              className="font-ui"
+            >
+              Start Your Journey 🚀
+            </Button>
+          </div>
           </div>
         </div>
       </section>
