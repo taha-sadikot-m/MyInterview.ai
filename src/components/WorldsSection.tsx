@@ -13,7 +13,8 @@ const WorldsSection = () => {
       title: "MyInterview World",
       subtitle: "Practice campus interviews with AI",
       icon: "💼",
-      buttonText: "Start Practice"
+      buttonText: "Start Practice",
+      link: "/interview"
     },
     {
       title: "MyPitch World",
@@ -47,9 +48,15 @@ const WorldsSection = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button variant="outline" className="w-full font-semibold">
-                  {world.buttonText}
-                </Button>
+                {world.link ? (
+                  <Button variant="outline" className="w-full font-semibold" asChild>
+                    <a href={world.link}>{world.buttonText}</a>
+                  </Button>
+                ) : (
+                  <Button variant="outline" className="w-full font-semibold">
+                    {world.buttonText}
+                  </Button>
+                )}
               </CardContent>
             </Card>
           ))}
