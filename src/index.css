@@ -8,35 +8,53 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* MySpeech.ai Design System */
+    --background: 249 250 251; /* Soft White #F9FAFB */
+    --foreground: 30 41 134; /* Royal Blue for text */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 255 255 255; /* Pure white cards */
+    --card-foreground: 30 41 134;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 255 255 255;
+    --popover-foreground: 30 41 134;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Royal Blue Primary #1E3A8A */
+    --primary: 219 69 138; /* Royal Blue */
+    --primary-foreground: 255 255 255;
+    
+    /* Electric Purple Accent #9333EA */
+    --accent: 271 91 92; /* Electric Purple */
+    --accent-foreground: 255 255 255;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Emerald Green Support #10B981 */
+    --success: 158 64 52; /* Emerald Green */
+    --success-foreground: 255 255 255;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --secondary: 244 244 245; /* Light gray */
+    --secondary-foreground: 30 41 134;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --muted: 248 250 252;
+    --muted-foreground: 100 116 139;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84 60;
+    --destructive-foreground: 255 255 255;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 226 232 240;
+    --input: 226 232 240;
+    --ring: 219 69 138;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
+
+    /* Custom MySpeech.ai tokens */
+    --gradient-primary: linear-gradient(135deg, hsl(219 69% 38%), hsl(271 91% 62%));
+    --gradient-accent: linear-gradient(45deg, hsl(271 91% 62%), hsl(158 64% 52%));
+    --gradient-hero: linear-gradient(135deg, hsl(219 69% 38%) 0%, hsl(271 91% 62%) 50%, hsl(158 64% 52%) 100%);
+    
+    --shadow-glow: 0 0 40px hsl(271 91% 62% / 0.3);
+    --shadow-card: 0 10px 30px -5px hsl(219 69% 38% / 0.1);
+    
+    --animation-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --animation-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 
     --sidebar-background: 0 0% 98%;
 
@@ -100,6 +118,45 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
   }
+}
+
+@layer components {
+  .hero-gradient {
+    background: var(--gradient-hero);
+  }
+  
+  .gradient-text {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .glow-effect {
+    box-shadow: var(--shadow-glow);
+  }
+  
+  .card-shadow {
+    box-shadow: var(--shadow-card);
+  }
+  
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px hsl(271 91% 62% / 0.3); }
+  50% { box-shadow: 0 0 40px hsl(271 91% 62% / 0.6); }
 }
