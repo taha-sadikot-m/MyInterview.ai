@@ -412,7 +412,7 @@ const MyPitchWorld = () => {
             </div>
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium font-ui">AI Mode</span>
+                <span className="text-sm font-medium font-ui">Mode</span>
                 <Button
                   variant={aiMode ? "default" : "outline"}
                   size="sm"
