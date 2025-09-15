@@ -8,63 +8,84 @@ import { Progress } from "@/components/ui/progress";
 import { Mic, Volume2, Send, RotateCcw, Save, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-// Question bank for different roles
+// Fresher-focused question bank for different roles
 const QUESTION_BANK = {
-  "SDE Intern": [
-    "Explain time vs space complexity with an example.",
-    "How would you design a URL shortener?",
-    "What's the difference between process and thread?",
-    "How do you handle nulls in your code defensively?",
-    "Describe a bug you fixed and how you diagnosed it."
-  ],
-  "Frontend Developer": [
-    "How do you optimize a React app for performance?",
-    "Explain the virtual DOM and reconciliation.",
-    "When do you debounce vs throttle?",
-    "How would you design a responsive grid system?",
-    "What's your approach to accessibility (a11y)?"
+  "Software Engineer": [
+    "Explain time vs space complexity with a simple example.",
+    "What is the difference between a process and a thread?",
+    "SQL: Write a query to fetch the second highest salary.",
+    "How would you debug a program that fails only on edge cases?",
+    "Describe a project you built and your exact contribution."
   ],
   "Data Analyst": [
-    "SQL: Find top 3 categories by revenue per month.",
-    "Difference between LEFT JOIN and UNION with examples.",
-    "How do you handle missing values?",
+    "Difference between JOIN and UNION with examples.",
     "Explain p-value to a non-technical stakeholder.",
-    "Design a dashboard for campus placement KPIs."
-  ],
-  "QA Engineer": [
-    "How do you write test cases for a login page?",
-    "Explain smoke vs regression testing.",
-    "What's boundary value analysis?",
-    "How do you prioritize bugs?",
-    "How do you automate tests for a web app?"
-  ],
-  "Product Manager": [
-    "Write a PRD outline for a campus recruitment portal.",
-    "How do you define and track success metrics?",
-    "Trade-off decision you made and why.",
-    "How do you run user interviews effectively?",
-    "Prioritize 5 features for MVP and justify."
+    "How would you handle missing values in a dataset?",
+    "SQL: Find the top 3 performing products per region.",
+    "How would you explain insights from data to a CEO in 2 minutes?"
   ],
   "Cloud Engineer": [
-    "Explain VPC, Subnet, Security Group basics.",
-    "How do you design HA & auto-scaling for a web app?",
-    "Blue/Green vs Rolling deployments?",
-    "Cost optimization strategies on AWS?",
-    "CI/CD pipeline for a containerized app."
+    "Explain VPC, Subnet, and Security Groups in simple terms.",
+    "Design a highly available web app on cloud—what components?",
+    "Blue/Green vs Rolling deployments—when to use which?",
+    "Two ways to reduce cloud costs without hurting reliability?",
+    "Outline a basic CI/CD pipeline for a containerized app."
+  ],
+  "QA Engineer": [
+    "Write test cases for a login page (happy & edge paths).",
+    "Smoke vs regression testing—explain with examples.",
+    "What is boundary value analysis and where would you use it?",
+    "How do you prioritize bugs when deadlines are tight?",
+    "Approach to automate tests for a web app from scratch?"
+  ],
+  "GET (Mechanical / Civil / EEE / Automobile)": [
+    "Thermodynamics/Bernoulli—explain a concept and application.",
+    "List common manufacturing processes and where they fit.",
+    "How do you estimate load-bearing capacity of a column?",
+    "Why did you choose your core branch and not IT?",
+    "One improvement you would make to a production line and why."
+  ],
+  "Consulting Analyst": [
+    "Guesstimate: Daily Uber rides in Chennai—walk through structure.",
+    "Tell me about solving a problem with incomplete data.",
+    "How would you persuade a client to adopt a digital solution?",
+    "Describe a team conflict and how you handled it.",
+    "Why consulting, and why this company?"
+  ],
+  "Business Analyst": [
+    "Improve user retention for a delivery app—top 3 hypotheses.",
+    "Which metrics matter most for a new product launch and why?",
+    "How do you manage conflicting stakeholder priorities?",
+    "Design a simple ops dashboard for a city manager.",
+    "Give a 30-second pitch for your favourite product and why."
   ]
 };
 
-const COMPANIES = ["TCS", "Infosys", "Accenture", "Wipro", "HCL", "Amazon", "Zoho"];
-const JOB_ROLES = ["SDE Intern", "Frontend Developer", "Data Analyst", "QA Engineer", "Product Manager", "Cloud Engineer"];
-const EXPERIENCE_LEVELS = ["Fresher", "0-1 years", "1-2 years", "2-3 years"];
+const COMPANY_CATEGORIES = {
+  "IT Services & Consulting": ["TCS", "Infosys", "Wipro", "HCL", "Accenture"],
+  "Product & Tech": ["Zoho", "Amazon", "Microsoft", "Google", "Adobe"],
+  "Core Engineering": ["L&T", "Bosch", "Hyundai", "Ford", "Ashok Leyland"],
+  "Consulting & Finance": ["Deloitte", "KPMG", "EY", "PwC", "Goldman Sachs", "JP Morgan"],
+  "Startups & Unicorns": ["Flipkart", "Swiggy", "Zomato", "Freshworks"]
+};
+
+const JOB_ROLES = [
+  "Software Engineer", "Data Analyst", "Cloud Engineer", "QA Engineer",
+  "GET (Mechanical / Civil / EEE / Automobile)",
+  "Consulting Analyst", "Risk Advisory Analyst", "Tech Analyst",
+  "Business Analyst", "Product Intern", "Sales/BD Associate"
+];
+
+const EXPERIENCE_LEVELS = ["Fresher (0 years)"];
 
 const SUGGESTED_TOPICS = {
-  "SDE Intern": ["DSA", "OOP", "Algorithms", "Data Structures", "Problem Solving"],
-  "Frontend Developer": ["React", "JavaScript", "CSS", "HTML", "Performance"],
-  "Data Analyst": ["SQL", "Excel", "Statistics", "Data Visualization", "Python"],
-  "QA Engineer": ["Testing", "Automation", "SDLC", "Bug Tracking", "Test Cases"],
-  "Product Manager": ["Product Strategy", "User Research", "Metrics", "Roadmapping", "Stakeholder Management"],
-  "Cloud Engineer": ["AWS", "Docker", "Kubernetes", "DevOps", "Infrastructure"]
+  "Software Engineer": ["DSA", "OOP", "SQL", "REST APIs", "Problem Solving", "Behavioural"],
+  "Data Analyst": ["SQL", "Excel", "Statistics", "Data Visualization", "Communication", "Behavioural"],
+  "Cloud Engineer": ["AWS", "Docker", "CI/CD", "DevOps", "Networking", "Problem Solving"],
+  "QA Engineer": ["Testing", "Automation", "SDLC", "Bug Tracking", "Communication", "Behavioural"],
+  "GET (Mechanical / Civil / EEE / Automobile)": ["Core Engineering", "Manufacturing", "CAD", "Problem Solving", "Communication", "Behavioural"],
+  "Consulting Analyst": ["Case Studies", "Guesstimates", "Problem Solving", "Communication", "Presentation", "Behavioural"],
+  "Business Analyst": ["Business Strategy", "Data Analysis", "Stakeholder Management", "Communication", "Problem Solving", "Behavioural"]
 };
 
 type Step = "setup" | "interview" | "feedback";
@@ -196,20 +217,32 @@ const MyInterviewWorld = () => {
     ((interviewData.currentQuestion + 1) / interviewData.questions.length) * 100 : 0;
 
   return (
-    <div className="min-h-screen" style={{
-      background: "linear-gradient(to bottom, #00C853 0%, #FFFFFF 50%, #000000 100%)"
-    }}>
+    <div className="min-h-screen bg-background">
+      {/* Hero Section */}
+      <section className="hero-gradient py-16 px-4">
+        <div className="container mx-auto text-center">
+          <h1 className="text-4xl md:text-5xl font-bold font-heading text-white mb-4">
+            MyInterview World
+          </h1>
+          <p className="text-xl font-body italic text-white/90 mb-4">
+            Prepare. Practice. Perform.
+          </p>
+          <p className="text-lg font-body text-white/80 max-w-2xl mx-auto">
+            Simulate real campus interviews as a Fresher and get recruiter-style feedback.
+          </p>
+        </div>
+      </section>
+
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">M</span>
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-lg font-ui">M</span>
               </div>
               <div>
-                <h1 className="text-xl md:text-2xl font-bold text-gray-900 font-heading">MyInterview World</h1>
-                <p className="text-sm text-gray-600 font-body italic">Prepare. Practice. Perform.</p>
+                <span className="text-lg font-semibold text-gray-900 font-heading">MyDebate.ai</span>
               </div>
             </div>
             <div className="flex items-center space-x-4">
@@ -225,7 +258,7 @@ const MyInterviewWorld = () => {
                 </Button>
               </div>
               {currentStep === "interview" && (
-                <div className="text-sm font-medium font-ui">
+                <div className="text-sm font-medium font-ui text-primary">
                   Question {interviewData.currentQuestion + 1}/{interviewData.questions.length}
                 </div>
               )}
@@ -259,8 +292,17 @@ const MyInterviewWorld = () => {
                     <SelectValue placeholder="Select a company" />
                   </SelectTrigger>
                   <SelectContent>
-                    {COMPANIES.map(company => (
-                      <SelectItem key={company} value={company}>{company}</SelectItem>
+                    {Object.entries(COMPANY_CATEGORIES).map(([category, companies]) => (
+                      <div key={category}>
+                        <div className="px-2 py-1 text-xs font-semibold text-muted-foreground font-ui">
+                          {category}
+                        </div>
+                        {companies.map(company => (
+                          <SelectItem key={company} value={company} className="pl-4">
+                            {company}
+                          </SelectItem>
+                        ))}
+                      </div>
                     ))}
                   </SelectContent>
                 </Select>
@@ -303,7 +345,7 @@ const MyInterviewWorld = () => {
                   <label className="text-sm font-medium text-gray-700 font-ui">Suggested Topics</label>
                   <div className="flex flex-wrap gap-2">
                     {SUGGESTED_TOPICS[interviewData.role as keyof typeof SUGGESTED_TOPICS]?.map(topic => (
-                      <Badge key={topic} variant="secondary" className="bg-green-100 text-green-800">
+                      <Badge key={topic} variant="secondary" className="bg-accent/10 text-accent font-ui">
                         {topic}
                       </Badge>
                     ))}
@@ -313,7 +355,7 @@ const MyInterviewWorld = () => {
 
               <Button 
                 onClick={handleStartInterview}
-                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg font-semibold font-ui"
+                className="w-full button-gradient text-white py-3 text-lg font-semibold font-ui rounded-xl"
                 size="lg"
               >
                 Start Interview
@@ -381,7 +423,7 @@ const MyInterviewWorld = () => {
                     <Button
                       onClick={handleAnswerSubmit}
                       disabled={!currentAnswer.trim()}
-                      className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 font-ui"
+                      className="flex items-center space-x-2 button-gradient font-ui rounded-xl"
                     >
                       <Send size={16} />
                       <span>Submit Answer</span>
@@ -405,8 +447,8 @@ const MyInterviewWorld = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Overall Score */}
-                <div className="text-center bg-green-50 p-6 rounded-lg">
-                  <div className="text-4xl font-bold text-green-600 mb-2 font-heading">8.5/10</div>
+                <div className="text-center bg-success/10 p-6 rounded-lg">
+                  <div className="text-4xl font-bold text-success mb-2 font-heading">8.5/10</div>
                   <div className="text-lg text-gray-700 font-body">Overall Interview Score</div>
                 </div>
 
@@ -416,15 +458,15 @@ const MyInterviewWorld = () => {
                     <h3 className="text-xl font-semibold text-gray-900 mb-4 font-heading">Strengths</h3>
                     <ul className="space-y-2">
                       <li className="flex items-start space-x-2">
-                        <span className="text-green-500">✓</span>
+                        <span className="text-success">✓</span>
                         <span className="font-body">Clear and structured responses</span>
                       </li>
                       <li className="flex items-start space-x-2">
-                        <span className="text-green-500">✓</span>
+                        <span className="text-success">✓</span>
                         <span className="font-body">Good technical knowledge demonstrated</span>
                       </li>
                       <li className="flex items-start space-x-2">
-                        <span className="text-green-500">✓</span>
+                        <span className="text-success">✓</span>
                         <span className="font-body">Confident delivery and communication</span>
                       </li>
                     </ul>
@@ -464,7 +506,7 @@ const MyInterviewWorld = () => {
                     <ArrowLeft size={16} />
                     <span>Back to Roles</span>
                   </Button>
-                  <Button className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 font-ui">
+                  <Button className="flex items-center space-x-2 button-gradient font-ui rounded-xl">
                     <Save size={16} />
                     <span>Save Attempt</span>
                   </Button>
@@ -482,10 +524,10 @@ const MyInterviewWorld = () => {
       {/* Footer */}
       <footer className="bg-white border-t border-gray-200 py-8 mt-16">
         <div className="container mx-auto px-4">
-          <div className="flex justify-center space-x-8 text-gray-600">
-            <a href="#" className="hover:text-green-600 transition-colors">About</a>
-            <a href="#" className="hover:text-green-600 transition-colors">Contact</a>
-            <a href="#" className="hover:text-green-600 transition-colors">Terms</a>
+          <div className="flex justify-center space-x-8 text-gray-600 font-ui">
+            <a href="#" className="hover:text-primary transition-colors">About</a>
+            <a href="#" className="hover:text-primary transition-colors">Contact</a>
+            <a href="#" className="hover:text-primary transition-colors">Terms</a>
           </div>
         </div>
       </footer>

@@ -18,15 +18,15 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 220 13% 9%;
 
-    /* Vibrant Green Primary */
-    --primary: 142 100% 40%; /* Vibrant Green #00C853 */
-    --primary-foreground: 0 0% 100%; /* White text on green */
-    --primary-hover: 142 100% 30%; /* Darker Green #009624 */
+    /* Purple Primary - MyDebate.ai Theme */
+    --primary: 248 91% 70%; /* Purple #6C63FF */
+    --primary-foreground: 0 0% 100%; /* White text on purple */
+    --primary-hover: 248 91% 60%; /* Darker Purple */
     
-    --accent: 142 100% 40%; /* Same green for accent */
-    --accent-foreground: 0 0% 100%; /* White text on green */
+    --accent: 330 100% 65%; /* Pink #FF4E9B */
+    --accent-foreground: 0 0% 100%; /* White text on pink */
 
-    --success: 142 100% 40%; /* Green for success */
+    --success: 142 100% 40%; /* Green #00C853 for positive actions */
     --success-foreground: 0 0% 100%;
 
     --secondary: 220 13% 91%; /* Light Gray #E5E7EB */
@@ -45,14 +45,14 @@ All colors MUST be HSL.
     --radius: 1rem;
 
     /* Modern gradient design tokens */
-    --gradient-hero: linear-gradient(135deg, hsl(142 100% 40%) 0%, hsl(0 0% 100%) 50%, hsl(220 13% 9%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(248 91% 70%) 0%, hsl(0 0% 100%) 50%, hsl(220 13% 9%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(0 0% 98%) 100%);
-    --gradient-green: linear-gradient(135deg, hsl(142 100% 40%), hsl(142 100% 50%));
-    --gradient-button: linear-gradient(135deg, hsl(142 100% 40%), hsl(142 100% 30%));
+    --gradient-primary: linear-gradient(135deg, hsl(248 91% 70%), hsl(330 100% 65%));
+    --gradient-button: linear-gradient(135deg, hsl(248 91% 70%), hsl(330 100% 65%));
     
     --shadow-card: 0 4px 16px hsl(220 13% 9% / 0.08);
-    --shadow-button: 0 2px 8px hsl(142 100% 40% / 0.2);
-    --shadow-hover: 0 8px 24px hsl(142 100% 40% / 0.15);
+    --shadow-button: 0 2px 8px hsl(248 91% 70% / 0.2);
+    --shadow-hover: 0 8px 24px hsl(248 91% 70% / 0.15);
     
     --animation-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
     --animation-smooth: cubic-bezier(0.4, 0, 0.2, 1);
@@ -106,7 +106,7 @@ All colors MUST be HSL.
   }
   
   .gradient-text {
-    background: var(--gradient-green);
+    background: var(--gradient-primary);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -150,6 +150,6 @@ All colors MUST be HSL.
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px hsl(142 100% 40% / 0.3); }
-  50% { box-shadow: 0 0 40px hsl(142 100% 40% / 0.6); }
+  0%, 100% { box-shadow: 0 0 20px hsl(248 91% 70% / 0.3); }
+  50% { box-shadow: 0 0 40px hsl(248 91% 70% / 0.6); }
 }
