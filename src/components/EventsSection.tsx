@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Users, Trophy } from "lucide-react";
+import { Calendar, MapPin, Users, Trophy, Clock } from "lucide-react";
 
 const events = [
   {
@@ -56,94 +56,80 @@ const events = [
 
 const EventsSection = () => {
   return (
-    <section id="events" className="py-20 bg-background">
-      <div className="container mx-auto px-4">
+    <section className="section-padding bg-muted/30">
+      <div className="section-content">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-heading font-bold mb-6 gradient-text">
-            Upcoming Events
+          <h2 className="text-4xl md:text-5xl font-heading text-foreground mb-6">
+            Community <span className="gradient-text">Events</span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Join competitions, workshops, and challenges to showcase your speaking skills
+          <p className="text-xl font-body text-muted-foreground max-w-2xl mx-auto mb-2">
+            Join our vibrant community every Saturday & Sunday
+          </p>
+          <p className="text-lg font-body text-muted-foreground">
+            Practice with fellow speakers and build lasting connections
           </p>
         </div>
-
-        <div className="grid md:grid-cols-2 gap-6 mb-12">
-          {events.map((event, index) => (
-            <Card
-              key={event.id}
-              className="group hover:scale-[1.02] transition-all duration-300 card-shadow animate-fade-in"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Badge 
-                        variant={event.status === "Open" ? "default" : event.status === "Premium" ? "destructive" : "secondary"}
-                        className="text-xs"
-                      >
-                        {event.status}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        {event.category}
-                      </Badge>
-                    </div>
-                    <CardTitle className="text-xl font-heading font-bold mb-2">
-                      {event.title}
-                    </CardTitle>
-                    <CardDescription>
-                      {event.description}
-                    </CardDescription>
-                  </div>
-                  <div className="ml-4">
-                    <div className="w-12 h-12 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center">
-                      <Trophy className="text-white" size={24} />
-                    </div>
-                  </div>
+        
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+          {events.map((event) => (
+            <Card key={event.id} className="card-modern group border-2 border-transparent hover:border-primary/20 hover:shadow-xl">
+              <CardHeader className="pb-4">
+                <div className="flex justify-between items-start mb-4">
+                  <Badge 
+                    variant={event.status === 'Open' ? 'default' : 'secondary'} 
+                    className="font-ui bg-primary text-primary-foreground"
+                  >
+                    {event.status}
+                  </Badge>
+                  <Badge variant="outline" className="font-ui border-accent-blue text-accent-blue">
+                    {event.category}
+                  </Badge>
                 </div>
+                <CardTitle className="text-xl font-heading text-foreground group-hover:text-primary transition-colors mb-3">
+                  {event.title}
+                </CardTitle>
+                <CardDescription className="text-base font-body text-muted-foreground leading-relaxed">
+                  {event.description}
+                </CardDescription>
               </CardHeader>
+              
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="flex items-center space-x-2">
-                    <Calendar size={16} className="text-muted-foreground" />
-                    <div>
-                      <div className="font-medium">{event.date}</div>
-                      <div className="text-muted-foreground">{event.time}</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <MapPin size={16} className="text-muted-foreground" />
-                    <div>
-                      <div className="font-medium">{event.location}</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Users size={16} className="text-muted-foreground" />
-                    <div>
-                      <div className="font-medium">{event.participants} Participants</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Trophy size={16} className="text-muted-foreground" />
-                    <div>
-                      <div className="font-medium">{event.prize}</div>
-                    </div>
-                  </div>
+                <div className="flex items-center text-sm text-muted-foreground font-body">
+                  <Calendar className="w-4 h-4 mr-3 text-primary" />
+                  {event.date}
                 </div>
-                <Button 
-                  variant={event.status === "Premium" ? "hero" : "world"} 
-                  className="w-full"
-                  size="lg"
-                >
-                  {event.status === "Premium" ? "Upgrade to Join" : "Register Now"}
-                </Button>
+                <div className="flex items-center text-sm text-muted-foreground font-body">
+                  <Clock className="w-4 h-4 mr-3 text-primary" />
+                  {event.time}
+                </div>
+                <div className="flex items-center text-sm text-muted-foreground font-body">
+                  <MapPin className="w-4 h-4 mr-3 text-primary" />
+                  {event.location}
+                </div>
+                <div className="flex items-center text-sm text-muted-foreground font-body">
+                  <Users className="w-4 h-4 mr-3 text-primary" />
+                  {event.participants} participants
+                </div>
+                <div className="flex items-center text-sm font-medium text-accent-green font-body">
+                  <Trophy className="w-4 h-4 mr-3" />
+                  {event.prize}
+                </div>
               </CardContent>
+              
+              <div className="p-6 pt-0">
+                <Button 
+                  className={`w-full font-ui ${event.status === 'Open' ? 'button-emerald' : 'opacity-50'} py-3`}
+                  disabled={event.status !== 'Open'}
+                >
+                  {event.status === 'Open' ? 'Register Now' : 'Upgrade to Join'}
+                </Button>
+              </div>
             </Card>
           ))}
         </div>
-
+        
         <div className="text-center">
-          <Button variant="outline" size="lg" className="px-8">
+          <Button className="button-secondary text-lg px-8 py-4">
             View All Events
           </Button>
         </div>

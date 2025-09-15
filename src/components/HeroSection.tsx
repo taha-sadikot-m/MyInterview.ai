@@ -7,32 +7,35 @@ const HeroSection = () => {
 
   return (
     <>
-      <section className="hero-indigo min-h-screen flex items-center justify-center relative">
-        <div className="container mx-auto px-4 py-20 text-center">
-        <div className="max-w-4xl mx-auto space-y-8">
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-6 font-heading">
-            <span className="gradient-text">MyDebate.ai</span>
-          </h1>
-          
-          <div className="space-y-4">
-            <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold text-foreground font-heading">
-              Empowering the speaking super star in you!
-            </h2>
-            <p className="text-lg md:text-xl lg:text-2xl text-muted-foreground font-medium font-body italic">
-              Prepare. Practice. Perform.
-            </p>
-          </div>
+      <section className="hero-modern min-h-screen flex items-center justify-center relative">
+        <div className="container mx-auto px-4 py-20 text-center relative z-10">
+          <div className="max-w-5xl mx-auto space-y-12">
+            <div className="space-y-6">
+              <h1 className="text-5xl md:text-7xl lg:text-8xl font-hero text-white leading-tight">
+                Speak Your Mind
+              </h1>
+              <p className="text-2xl md:text-3xl lg:text-4xl font-tagline text-white/90">
+                Prepare, Practice & Perform
+              </p>
+              <p className="text-xl md:text-2xl text-white/80 font-body max-w-3xl mx-auto">
+                Speak with confidence. Lead with impact.
+              </p>
+            </div>
 
-          <div className="pt-8">
-            <Button 
-              variant="hero" 
-              size="lg"
-              onClick={() => setIsSignupOpen(true)}
-              className="font-ui"
-            >
-              Start Your Journey 🚀
-            </Button>
-          </div>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center pt-8">
+              <Button 
+                onClick={() => setIsSignupOpen(true)}
+                className="button-primary text-lg px-8 py-4 min-w-[250px]"
+              >
+                Start Practicing 🎤
+              </Button>
+              <Button 
+                variant="outline"
+                className="button-secondary text-lg px-8 py-4 min-w-[250px] border-white text-white hover:bg-white hover:text-primary"
+              >
+                Explore Events 📅
+              </Button>
+            </div>
           </div>
         </div>
       </section>
