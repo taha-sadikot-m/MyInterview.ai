@@ -12,24 +12,24 @@ const HeroSection = () => {
           alt="AI-powered speech coaching"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/90 via-accent/80 to-success/70"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/95 to-background/90"></div>
       </div>
 
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 text-center text-white">
+      <div className="relative z-10 container mx-auto px-4 text-center text-foreground">
         <div className="animate-fade-in">
           <div className="flex items-center justify-center space-x-2 mb-6">
-            <Sparkles className="text-yellow-300 animate-pulse-glow" size={32} />
-            <span className="text-lg font-medium bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
+            <Sparkles className="text-primary animate-pulse-glow" size={32} />
+            <span className="text-lg font-medium bg-primary/20 backdrop-blur-sm px-4 py-2 rounded-full border border-primary/30">
               World's First AI Speech Simulator
             </span>
-            <Sparkles className="text-yellow-300 animate-pulse-glow" size={32} />
+            <Sparkles className="text-primary animate-pulse-glow" size={32} />
           </div>
 
           <h1 className="text-5xl md:text-7xl font-heading font-bold mb-6 animate-slide-up">
             Become a Speaking
             <br />
-            <span className="bg-gradient-to-r from-yellow-300 to-white bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
               Super Star
             </span>
           </h1>
@@ -47,7 +47,7 @@ const HeroSection = () => {
             <Button
               variant="outline"
               size="lg"
-              className="text-lg px-8 py-6 bg-white/10 border-white/30 text-white hover:bg-white/20"
+              className="text-lg px-8 py-6 bg-background/10 border-border text-foreground hover:bg-muted"
             >
               <Users className="mr-2" size={24} />
               Watch Demo
@@ -74,13 +74,13 @@ const HeroSection = () => {
 
       {/* Floating Elements */}
       <div className="absolute top-20 left-10 animate-float">
-        <div className="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center">
-          <Zap className="text-yellow-300" size={24} />
+        <div className="w-16 h-16 bg-primary/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-primary/30">
+          <Zap className="text-primary" size={24} />
         </div>
       </div>
       <div className="absolute bottom-20 right-10 animate-float" style={{ animationDelay: "1s" }}>
-        <div className="w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center">
-          <Users className="text-blue-300" size={28} />
+        <div className="w-20 h-20 bg-primary/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-primary/30">
+          <Users className="text-primary" size={28} />
         </div>
       </div>
     </section>

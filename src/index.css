@@ -8,105 +8,82 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Clean White Background with Black Text */
-    --background: 255 255 255; /* Pure White */
-    --foreground: 0 0 0; /* Pure Black */
+    /* MyDebate.ai Theme - Black background with cyan accent */
+    --background: 0 0 0; /* Pure Black */
+    --foreground: 255 255 255; /* Pure White */
 
-    --card: 255 255 255; /* Pure white cards */
-    --card-foreground: 0 0 0; /* Black text on cards */
+    --card: 10 10 10; /* Very dark gray cards */
+    --card-foreground: 255 255 255; /* White text on cards */
 
-    --popover: 255 255 255;
-    --popover-foreground: 0 0 0;
+    --popover: 0 0 0;
+    --popover-foreground: 255 255 255;
 
-    /* Subtle grays for accents */
-    --primary: 0 0 0; /* Black primary */
-    --primary-foreground: 255 255 255; /* White on black */
+    /* Cyan/Turquoise Primary - matching mydebate.ai */
+    --primary: 194 100 50; /* Cyan blue */
+    --primary-foreground: 0 0 0; /* Black text on cyan */
     
-    --accent: 240 5 96; /* Very light gray */
-    --accent-foreground: 0 0 0; /* Black text on light gray */
+    --accent: 194 100 50; /* Same cyan for accent */
+    --accent-foreground: 0 0 0; /* Black text on cyan */
 
-    --success: 142 76 36; /* Subtle green */
+    --success: 142 76 36; /* Green for success */
     --success-foreground: 255 255 255;
 
-    --secondary: 0 0 96; /* Very light gray */
-    --secondary-foreground: 0 0 20; /* Dark gray text */
+    --secondary: 0 0 15; /* Dark gray */
+    --secondary-foreground: 255 255 255; /* White text */
 
-    --muted: 0 0 96; /* Light gray */
-    --muted-foreground: 0 0 40; /* Medium gray text */
+    --muted: 0 0 20; /* Slightly lighter dark gray */
+    --muted-foreground: 0 0 60; /* Medium gray text */
 
     --destructive: 0 84 60;
     --destructive-foreground: 255 255 255;
 
-    --border: 0 0 90; /* Light gray borders */
-    --input: 0 0 90; /* Light gray inputs */
-    --ring: 0 0 0; /* Black focus ring */
+    --border: 0 0 20; /* Dark gray borders */
+    --input: 0 0 20; /* Dark gray inputs */
+    --ring: 194 100 50; /* Cyan focus ring */
 
     --radius: 0.5rem;
 
-    /* Minimal design tokens */
-    --gradient-primary: linear-gradient(135deg, hsl(0 0% 0%), hsl(0 0% 20%));
-    --gradient-accent: linear-gradient(45deg, hsl(0 0% 95%), hsl(0 0% 98%));
-    --gradient-hero: linear-gradient(135deg, hsl(0 0% 98%) 0%, hsl(0 0% 100%) 100%);
+    /* MyDebate.ai style design tokens */
+    --gradient-primary: linear-gradient(135deg, hsl(194 100% 50%), hsl(194 100% 60%));
+    --gradient-accent: linear-gradient(45deg, hsl(0 0% 5%), hsl(0 0% 15%));
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 0%) 0%, hsl(0 0% 10%) 100%);
     
-    --shadow-glow: 0 0 20px hsl(0 0% 0% / 0.1);
-    --shadow-card: 0 4px 12px hsl(0 0% 0% / 0.1);
+    --shadow-glow: 0 0 20px hsl(194 100% 50% / 0.3);
+    --shadow-card: 0 4px 12px hsl(0 0% 0% / 0.5);
     
     --animation-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
     --animation-smooth: cubic-bezier(0.4, 0, 0.2, 1);
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Dark mode can remain the same since we're already using dark theme */
+    --background: 0 0 0;
+    --foreground: 255 255 255;
+    --card: 10 10 10;
+    --card-foreground: 255 255 255;
+    --popover: 0 0 0;
+    --popover-foreground: 255 255 255;
+    --primary: 194 100 50;
+    --primary-foreground: 0 0 0;
+    --secondary: 0 0 15;
+    --secondary-foreground: 255 255 255;
+    --muted: 0 0 20;
+    --muted-foreground: 0 0 60;
+    --accent: 194 100 50;
+    --accent-foreground: 0 0 0;
+    --destructive: 0 84 60;
+    --destructive-foreground: 255 255 255;
+    --border: 0 0 20;
+    --input: 0 0 20;
+    --ring: 194 100 50;
+    --sidebar-background: 0 0 5;
+    --sidebar-foreground: 255 255 255;
+    --sidebar-primary: 194 100 50;
+    --sidebar-primary-foreground: 0 0 0;
+    --sidebar-accent: 0 0 15;
+    --sidebar-accent-foreground: 255 255 255;
+    --sidebar-border: 0 0 20;
+    --sidebar-ring: 194 100 50;
   }
 }
 
@@ -127,7 +104,10 @@ All colors MUST be HSL.
   }
   
   .gradient-text {
-    color: hsl(var(--foreground));
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
   
   .glow-effect {
@@ -153,6 +133,6 @@ All colors MUST be HSL.
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 10px hsl(0 0% 0% / 0.1); }
-  50% { box-shadow: 0 0 20px hsl(0 0% 0% / 0.2); }
+  0%, 100% { box-shadow: 0 0 20px hsl(194 100% 50% / 0.3); }
+  50% { box-shadow: 0 0 40px hsl(194 100% 50% / 0.6); }
 }
