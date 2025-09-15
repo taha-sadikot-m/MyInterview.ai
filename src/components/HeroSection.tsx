@@ -7,7 +7,7 @@ const HeroSection = () => {
 
   return (
     <>
-      <section className="hero-gradient min-h-screen flex items-center justify-center relative">
+      <section className="hero-indigo min-h-screen flex items-center justify-center relative">
         <div className="container mx-auto px-4 py-20 text-center">
         <div className="max-w-4xl mx-auto space-y-8">
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-6 font-heading">

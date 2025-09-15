@@ -2,61 +2,60 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Speak Your Mind Design System - Premium Indigo & White Theme */
 
 @layer base {
   :root {
-    /* MyDebate.ai Theme - White background, Black text, Green primary, Indigo secondary */
+    /* Speak Your Mind Theme - Indigo Primary, White Secondary, Soft Gray Accent */
     --background: 0 0% 100%; /* Pure white background */
-    --foreground: 0 0% 0%; /* Pure black text */
+    --foreground: 0 0% 0%; /* Black text */
 
-    --card: 0 0% 100%; /* Pure white cards */
+    --card: 0 0% 100%; /* White cards */
     --card-foreground: 0 0% 0%; /* Black text on cards */
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%; /* Black text */
+    --popover-foreground: 0 0% 0%;
 
-    /* Green Primary Theme #00C853 */
-    --primary: 142 100% 39%; /* Green #00C853 */
-    --primary-foreground: 0 0% 0%; /* Black text on green */
-    --primary-hover: 142 100% 35%; /* Darker Green */
+    /* Indigo Primary Theme #4F46E5 */
+    --primary: 238 69% 58%; /* Indigo #4F46E5 */
+    --primary-foreground: 0 0% 100%; /* White text on indigo */
+    --primary-hover: 238 69% 45%; /* Darker Indigo */
+    --primary-deep: 238 84% 38%; /* Deep Indigo */
     
-    /* Indigo Secondary Theme #4F46E5 */
-    --secondary: 238 50% 50%; /* Indigo #4F46E5 */
-    --secondary-foreground: 0 0% 0%; /* Black text on indigo outline */
+    /* Secondary White */
+    --secondary: 0 0% 100%; /* White */
+    --secondary-foreground: 0 0% 0%; /* Black text */
 
-    --accent: 142 100% 39%; /* Use green for accent */
+    /* Soft Gray Accent #F5F5F7 */
+    --accent: 220 14% 96%; /* Soft Gray #F5F5F7 */
     --accent-foreground: 0 0% 0%; /* Black text */
 
-    --success: 142 100% 39%; /* Green #00C853 for positive actions */
-    --success-foreground: 0 0% 0%;
-
-    --muted: 0 0% 96%; /* Very light gray */
-    --muted-foreground: 0 0% 0%; /* Black text */
+    --muted: 220 14% 96%; /* Soft gray */
+    --muted-foreground: 220 8% 46%; /* Medium gray text */
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 90%; /* Light gray borders */
+    --border: 238 69% 58%; /* Indigo borders */
     --input: 0 0% 100%; /* White inputs */
-    --ring: 238 50% 50%; /* Indigo focus ring */
+    --ring: 238 69% 58%; /* Indigo focus ring */
 
-    --radius: 1rem;
+    --radius: 2rem; /* Large rounded corners */
 
-    /* Modern gradient design tokens */
-    --gradient-hero: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(142 100% 39%) 50%, hsl(238 50% 50%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(0 0% 99%) 100%);
-    --gradient-primary: linear-gradient(135deg, hsl(142 100% 39%), hsl(238 50% 50%));
-    --gradient-secondary: linear-gradient(135deg, hsl(238 50% 50%), hsl(142 100% 39%));
+    /* Premium gradient design tokens */
+    --gradient-hero: linear-gradient(135deg, hsl(238 69% 58%) 0%, hsl(238 84% 38%) 100%);
+    --gradient-indigo: linear-gradient(135deg, hsl(238 69% 58%), hsl(238 84% 38%));
+    --gradient-glow: linear-gradient(135deg, hsl(238 69% 58% / 0.8), hsl(238 84% 38% / 0.9));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(220 14% 98%) 100%);
     
-    --shadow-card: 0 4px 16px hsl(0 0% 0% / 0.08);
-    --shadow-button: 0 2px 8px hsl(142 100% 39% / 0.2);
-    --shadow-hover: 0 8px 24px hsl(142 100% 39% / 0.15);
+    --shadow-card: 0 8px 32px hsl(238 69% 58% / 0.12);
+    --shadow-button: 0 4px 16px hsl(238 69% 58% / 0.24);
+    --shadow-hover: 0 12px 40px hsl(238 69% 58% / 0.20);
+    --shadow-glow: 0 0 32px hsl(238 69% 58% / 0.4);
     
     --animation-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
     --animation-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+    --animation-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
 
   .dark {
@@ -93,23 +92,34 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
     font-family: 'Times New Roman', Times, serif;
     font-weight: 400;
-    line-height: 1.6;
+    line-height: 1.5;
   }
 
-  /* Typography styles */
-  .font-heading {
+  /* Premium Typography styles */
+  .font-hero {
     font-family: 'Poppins', sans-serif;
     font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  .font-heading {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
   }
 
   .font-body {
     font-family: 'Times New Roman', Times, serif;
     font-weight: 400;
+    line-height: 1.6;
   }
 
   .font-ui {
     font-family: 'Inter', sans-serif;
-    font-weight: 600;
+    font-weight: 500;
+    line-height: 1.4;
   }
 }
 
@@ -123,51 +133,120 @@ All colors MUST be HSL.
   }
   
   .gradient-text {
-    background: var(--gradient-primary);
+    background: var(--gradient-indigo);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   
-  .button-gradient {
-    background: var(--gradient-primary);
+  /* Premium Button Styles */
+  .button-premium {
+    background: var(--gradient-indigo);
+    color: hsl(var(--primary-foreground));
+    border-radius: var(--radius);
+    min-width: 200px;
+    min-height: 56px;
+    padding: 16px 32px;
     box-shadow: var(--shadow-button);
+    transition: all 200ms var(--animation-smooth);
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+    border: 2px solid transparent;
   }
   
-  .button-gradient:hover {
-    background: var(--gradient-primary);
-    box-shadow: var(--shadow-hover);
-    transform: translateY(-1px);
+  .button-premium:hover {
+    background: var(--gradient-indigo);
+    box-shadow: var(--shadow-hover), var(--shadow-glow);
+    transform: translateY(-2px);
+    border-color: hsl(var(--primary));
+    font-weight: 700;
   }
   
-  .card-shadow {
+  /* Card Styles */
+  .card-premium {
+    background: var(--gradient-card);
+    border: 2px solid hsl(var(--primary));
+    border-radius: var(--radius);
+    padding: 40px;
     box-shadow: var(--shadow-card);
+    transition: all 300ms var(--animation-smooth);
   }
   
-  .card-hover {
-    transition: all 0.3s var(--animation-smooth);
-  }
-  
-  .card-hover:hover {
+  .card-premium:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-hover);
+    border-color: hsl(var(--primary-hover));
   }
   
-  .animate-float {
-    animation: float 3s ease-in-out infinite;
+  /* Indigo Hero Section */
+  .hero-indigo {
+    background: var(--gradient-hero);
+    color: hsl(var(--primary-foreground));
+    padding: 80px 0;
   }
   
-  .animate-pulse-glow {
-    animation: pulse-glow 2s ease-in-out infinite;
+  /* Mic Button Animation */
+  .mic-pulse {
+    animation: mic-pulse 2s ease-in-out infinite;
+  }
+  
+  /* Waveform Animation */
+  .waveform {
+    animation: waveform 1.5s ease-in-out infinite;
+  }
+  
+  /* Glow Effect */
+  .glow-indigo {
+    box-shadow: var(--shadow-glow);
+  }
+  
+  /* Section Spacing */
+  .section-padding {
+    padding: 80px 0;
+  }
+  
+  .section-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
   }
 }
 
+/* Premium Animations */
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-10px); }
 }
 
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px hsl(248 91% 70% / 0.3); }
-  50% { box-shadow: 0 0 40px hsl(248 91% 70% / 0.6); }
+@keyframes mic-pulse {
+  0%, 100% { 
+    transform: scale(1);
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0.7);
+  }
+  50% { 
+    transform: scale(1.05);
+    box-shadow: 0 0 0 20px hsl(var(--primary) / 0);
+  }
+}
+
+@keyframes waveform {
+  0%, 100% { transform: scaleY(0.5); }
+  50% { transform: scaleY(1); }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: var(--shadow-glow); }
+  50% { box-shadow: var(--shadow-hover), var(--shadow-glow); }
 }
