@@ -1,136 +1,140 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Users, Trophy, Clock } from "lucide-react";
-
-const events = [
-  {
-    id: 1,
-    title: "AI Debate Championship 2024",
-    date: "Dec 15, 2024",
-    time: "10:00 AM - 6:00 PM",
-    location: "Virtual Arena",
-    participants: 156,
-    category: "Debate",
-    status: "Open",
-    prize: "$5,000",
-    description: "Global AI-powered debate competition with real-time scoring"
-  },
-  {
-    id: 2,
-    title: "Tech Interview Bootcamp",
-    date: "Dec 20, 2024",
-    time: "2:00 PM - 5:00 PM",
-    location: "Online",
-    participants: 89,
-    category: "Interview",
-    status: "Filling Fast",
-    prize: "Job Opportunities",
-    description: "Intensive mock interview sessions with top tech companies"
-  },
-  {
-    id: 3,
-    title: "Startup Pitch Fest",
-    date: "Jan 5, 2025",
-    time: "9:00 AM - 8:00 PM",
-    location: "Hybrid Event",
-    participants: 42,
-    category: "Pitch",
-    status: "Premium",
-    prize: "$10,000 Funding",
-    description: "Present your startup to real investors and AI judges"
-  },
-  {
-    id: 4,
-    title: "Model UN Climate Summit",
-    date: "Jan 12, 2025",
-    time: "All Day",
-    location: "Virtual UN Hall",
-    participants: 203,
-    category: "MUN",
-    status: "Open",
-    prize: "Certificates",
-    description: "Simulate global climate negotiations with AI-powered dynamics"
-  }
-];
+import { Card } from "@/components/ui/card";
+import { Calendar, MapPin, Users, Clock } from "lucide-react";
 
 const EventsSection = () => {
+  const events = [
+    {
+      title: "National Debate Championship",
+      date: "March 15, 2024",
+      time: "10:00 AM - 4:00 PM", 
+      location: "Delhi University",
+      participants: "500+ Students",
+      type: "Competition",
+      badge: "🏆 Championship",
+      description: "Compete with India's brightest minds in this prestigious debate tournament."
+    },
+    {
+      title: "MUN Simulation Workshop", 
+      date: "March 22, 2024",
+      time: "2:00 PM - 6:00 PM",
+      location: "Online + Mumbai Hub",
+      participants: "200+ Delegates", 
+      type: "Workshop",
+      badge: "🌍 MUN",
+      description: "Intensive Model UN training with real diplomats and experienced chairs."
+    },
+    {
+      title: "Startup Pitch Battle",
+      date: "April 5, 2024", 
+      time: "11:00 AM - 5:00 PM",
+      location: "Bangalore Tech Park",
+      participants: "100+ Entrepreneurs",
+      type: "Pitch",
+      badge: "🚀 Startup",
+      description: "Present your startup idea to real investors and win funding opportunities."
+    },
+    {
+      title: "Interview Skills Bootcamp",
+      date: "April 12, 2024",
+      time: "9:00 AM - 3:00 PM", 
+      location: "Gurgaon Business District",
+      participants: "150+ Job Seekers",
+      type: "Training",
+      badge: "💼 Career",
+      description: "Master interview techniques with HR experts from top companies."
+    }
+  ];
+
   return (
-    <section className="section-padding bg-muted/30">
+    <section className="section-padding bg-gradient-to-b from-background to-muted/30">
       <div className="section-content">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-heading text-foreground mb-6">
-            Community <span className="gradient-text">Events</span>
+        <div className="text-center mb-20">
+          <h2 className="font-heading text-5xl md:text-7xl mb-6 gradient-text">
+            Upcoming Events
           </h2>
-          <p className="text-xl font-body text-muted-foreground max-w-2xl mx-auto mb-2">
-            Join our vibrant community every Saturday & Sunday
-          </p>
-          <p className="text-lg font-body text-muted-foreground">
-            Practice with fellow speakers and build lasting connections
+          <p className="font-body text-xl text-muted-foreground max-w-4xl mx-auto">
+            Join thousands of students and professionals in our exciting speaking events and competitions.
           </p>
         </div>
-        
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-          {events.map((event) => (
-            <Card key={event.id} className="card-modern group border-2 border-transparent hover:border-primary/20 hover:shadow-xl">
-              <CardHeader className="pb-4">
-                <div className="flex justify-between items-start mb-4">
-                  <Badge 
-                    variant={event.status === 'Open' ? 'default' : 'secondary'} 
-                    className="font-ui bg-primary text-primary-foreground"
-                  >
-                    {event.status}
-                  </Badge>
-                  <Badge variant="outline" className="font-ui border-accent-blue text-accent-blue">
-                    {event.category}
-                  </Badge>
+
+        <div className="grid md:grid-cols-2 gap-8">
+          {events.map((event, index) => (
+            <Card key={index} className="card-modern group overflow-hidden hover:shadow-2xl">
+              {/* Event Image */}
+              <div className="relative h-48 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-t-xl mb-6">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-6xl opacity-50">
+                    {event.type === "Competition" && "🏆"}
+                    {event.type === "Workshop" && "🌍"}
+                    {event.type === "Pitch" && "🚀"}
+                    {event.type === "Training" && "💼"}
+                  </div>
                 </div>
-                <CardTitle className="text-xl font-heading text-foreground group-hover:text-primary transition-colors mb-3">
-                  {event.title}
-                </CardTitle>
-                <CardDescription className="text-base font-body text-muted-foreground leading-relaxed">
-                  {event.description}
-                </CardDescription>
-              </CardHeader>
-              
-              <CardContent className="space-y-4">
-                <div className="flex items-center text-sm text-muted-foreground font-body">
-                  <Calendar className="w-4 h-4 mr-3 text-primary" />
-                  {event.date}
+                <div className="absolute top-4 left-4">
+                  <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-ui font-semibold">
+                    {event.badge}
+                  </span>
                 </div>
-                <div className="flex items-center text-sm text-muted-foreground font-body">
-                  <Clock className="w-4 h-4 mr-3 text-primary" />
-                  {event.time}
+                <div className="absolute top-4 right-4">
+                  <span className="bg-black/20 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-ui">
+                    {event.type}
+                  </span>
                 </div>
-                <div className="flex items-center text-sm text-muted-foreground font-body">
-                  <MapPin className="w-4 h-4 mr-3 text-primary" />
-                  {event.location}
+              </div>
+
+              {/* Event Details */}
+              <div className="space-y-6">
+                <div>
+                  <h3 className="font-heading text-2xl mb-3 group-hover:gradient-text-purple transition-all duration-300">
+                    {event.title}
+                  </h3>
+                  <p className="font-body text-muted-foreground">
+                    {event.description}
+                  </p>
                 </div>
-                <div className="flex items-center text-sm text-muted-foreground font-body">
-                  <Users className="w-4 h-4 mr-3 text-primary" />
-                  {event.participants} participants
+
+                {/* Event Meta */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-5 h-5 text-primary" />
+                    <div>
+                      <p className="font-ui text-sm font-semibold">{event.date}</p>
+                      <p className="font-body text-xs text-muted-foreground">{event.time}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-primary" />
+                    <div>
+                      <p className="font-ui text-sm font-semibold truncate">{event.location}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Users className="w-5 h-5 text-emerald-500" />
+                    <p className="font-ui text-sm">{event.participants}</p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-orange-500" />
+                    <p className="font-ui text-sm">Registration Open</p>
+                  </div>
                 </div>
-                <div className="flex items-center text-sm font-medium text-accent-green font-body">
-                  <Trophy className="w-4 h-4 mr-3" />
-                  {event.prize}
-                </div>
-              </CardContent>
-              
-              <div className="p-6 pt-0">
-                <Button 
-                  className={`w-full font-ui ${event.status === 'Open' ? 'button-emerald' : 'opacity-50'} py-3`}
-                  disabled={event.status !== 'Open'}
-                >
-                  {event.status === 'Open' ? 'Register Now' : 'Upgrade to Join'}
+
+                {/* Register Button */}
+                <Button className="btn-emerald w-full text-lg py-4 rounded-2xl font-ui group-hover:scale-105 transition-transform duration-300">
+                  Register Now
                 </Button>
               </div>
             </Card>
           ))}
         </div>
-        
-        <div className="text-center">
-          <Button className="button-secondary text-lg px-8 py-4">
-            View All Events
+
+        {/* View All Events */}
+        <div className="text-center mt-16">
+          <Button className="btn-secondary text-lg px-8 py-4 rounded-2xl border-primary">
+            View All Events →
           </Button>
         </div>
       </div>
