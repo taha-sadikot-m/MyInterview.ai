@@ -9,14 +9,14 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* Light Green Background with Black Text Theme */
-    --background: 120 60% 95%; /* Light green background */
-    --foreground: 0 0% 0%; /* Black text */
+    --background: 120 50% 98%; /* Very light green background */
+    --foreground: 0 0% 0%; /* Pure black text */
 
     --card: 0 0% 100%; /* Pure white cards */
     --card-foreground: 0 0% 0%; /* Black text on cards */
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
+    --popover-foreground: 0 0% 0%; /* Black text */
 
     /* Indigo Primary Theme */
     --primary: 238 50% 50%; /* Indigo #4F46E5 */
@@ -33,7 +33,7 @@ All colors MUST be HSL.
     --secondary-foreground: 0 0% 0%; /* Black text */
 
     --muted: 220 13% 96%; /* Very light gray */
-    --muted-foreground: 0 0% 20%; /* Dark gray text */
+    --muted-foreground: 0 0% 0%; /* Black text */
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
@@ -45,8 +45,8 @@ All colors MUST be HSL.
     --radius: 1rem;
 
     /* Modern gradient design tokens */
-    --gradient-hero: linear-gradient(135deg, hsl(120 60% 95%) 0%, hsl(238 50% 50%) 50%, hsl(238 50% 40%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(120 60% 97%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(120 50% 98%) 0%, hsl(238 50% 50%) 50%, hsl(238 50% 40%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(120 50% 99%) 100%);
     --gradient-primary: linear-gradient(135deg, hsl(238 50% 50%), hsl(238 50% 40%));
     --gradient-button: linear-gradient(135deg, hsl(238 50% 50%), hsl(238 50% 40%));
     

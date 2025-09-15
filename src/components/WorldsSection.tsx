@@ -35,6 +35,11 @@ const WorldsSection = () => {
   return (
     <section className="py-20 bg-background">
       <div className="container mx-auto px-4">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4 font-heading">
+            Start Your Journey - 4 Options
+          </h2>
+        </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {worlds.map((world, index) => (
             <Card key={index} className="card-gradient card-hover group text-center p-8 border-2 border-primary/10 hover:border-primary/30">

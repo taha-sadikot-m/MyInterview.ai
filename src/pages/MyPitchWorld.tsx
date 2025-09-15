@@ -386,13 +386,13 @@ const MyPitchWorld = () => {
       {/* Hero Section */}
       <section className="hero-gradient py-16 px-4">
         <div className="container mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-bold font-heading text-white mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold font-heading text-foreground mb-4">
             MyPitch World
           </h1>
-          <p className="text-xl font-body italic text-white/90 mb-4">
+          <p className="text-xl font-body italic text-foreground/90 mb-4">
             "Pitch to AI investors. Practice. Improve. Convince."
           </p>
-          <p className="text-lg font-body text-white/80 max-w-2xl mx-auto">
+          <p className="text-lg font-body text-foreground/80 max-w-2xl mx-auto">
             Simulate real investor Q&A with role-specific and stage-specific questions. Get actionable feedback like a real VC panel.
           </p>
         </div>
@@ -403,16 +403,25 @@ const MyPitchWorld = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.location.href = '/'}
+                className="font-ui"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Home
+              </Button>
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-lg font-ui">M</span>
               </div>
               <div>
-                <span className="text-lg font-semibold text-gray-900 font-heading">MyDebate.ai</span>
+                <span className="text-lg font-semibold text-foreground font-heading">MyDebate.ai</span>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium font-ui">Mode</span>
+                <span className="text-sm font-medium font-ui text-foreground">Mode</span>
                 <Button
                   variant={aiMode ? "default" : "outline"}
                   size="sm"
@@ -442,14 +451,14 @@ const MyPitchWorld = () => {
         {currentStep === "setup" && (
           <Card className="max-w-2xl mx-auto card-shadow card-hover rounded-xl">
             <CardHeader className="text-center">
-              <CardTitle className="text-3xl font-bold text-gray-900 font-heading">Pitch Setup</CardTitle>
-              <CardDescription className="text-lg font-body">
+              <CardTitle className="text-3xl font-bold text-foreground font-heading">Pitch Setup</CardTitle>
+              <CardDescription className="text-lg font-body text-foreground/80">
                 Configure your startup details for investor Q&A practice
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 font-ui">Company Name</label>
+                <label className="text-sm font-medium text-foreground font-ui">Company Name</label>
                 <Input
                   placeholder="Enter your company name"
                   value={pitchData.companyName}
