@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const WorldsSection = () => {
   const worlds = [
@@ -20,7 +21,8 @@ const WorldsSection = () => {
       title: "MyPitch World",
       subtitle: "Simulate your investor pitch with AI",
       icon: "📈",
-      buttonText: "Pitch Now"
+      buttonText: "Pitch Now",
+      link: "/pitch"
     },
     {
       title: "MyEvents World",
@@ -50,7 +52,7 @@ const WorldsSection = () => {
               <CardContent>
                 {world.link ? (
                   <Button variant="outline" className="w-full font-semibold font-ui" asChild>
-                    <a href={world.link}>{world.buttonText}</a>
+                    <Link to={world.link}>{world.buttonText}</Link>
                   </Button>
                 ) : (
                   <Button variant="outline" className="w-full font-semibold font-ui">
