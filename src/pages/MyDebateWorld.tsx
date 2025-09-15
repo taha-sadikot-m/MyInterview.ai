@@ -1,5 +1,4 @@
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import Navigation from "@/components/Navigation";
 import { HeroSection } from "@/components/debate/HeroSection";
 import { MunSection } from "@/components/debate/MunSection";
 import { DebatePracticeSection } from "@/components/debate/DebatePracticeSection";
@@ -10,14 +9,13 @@ import { GenZTopicsSection } from "@/components/debate/GenZTopicsSection";
 const MyDebateWorld = () => {
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <Navigation />
       <HeroSection />
       <MunSection />
       <DebatePracticeSection />
       <SchoolEventsSection />
       <GSLSpeechSection />
       <GenZTopicsSection />
-      <Footer />
     </div>
   );
 };

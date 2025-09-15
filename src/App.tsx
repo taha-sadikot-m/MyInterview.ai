@@ -6,11 +6,10 @@ import Index from "./pages/Index";
 import MyDebateWorld from "./pages/MyDebateWorld";
 import MyInterviewWorld from "./pages/MyInterviewWorld";
 import MyPitchWorld from "./pages/MyPitchWorld";
-import Events from "./pages/Events";
-import Dashboard from "./pages/Dashboard";
+import Services from "./pages/Services";
+import Enquire from "./pages/Enquire";
+import Premium from "./pages/Premium";
 import NotFound from "./pages/NotFound";
-import "@fontsource/poppins/700.css";
-import "@fontsource/inter/600.css";
 
 const App = () => (
   <TooltipProvider>
@@ -22,8 +21,9 @@ const App = () => (
         <Route path="/debate" element={<MyDebateWorld />} />
         <Route path="/interview" element={<MyInterviewWorld />} />
         <Route path="/pitch" element={<MyPitchWorld />} />
-        <Route path="/events" element={<Events />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/services" element={<Services />} />
+        <Route path="/enquire" element={<Enquire />} />
+        <Route path="/premium" element={<Premium />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
