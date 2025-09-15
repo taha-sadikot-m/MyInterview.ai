@@ -8,57 +8,292 @@ import { Progress } from "@/components/ui/progress";
 import { Mic, Volume2, Send, RotateCcw, Save, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-// Fresher-focused question bank for different roles
-const QUESTION_BANK = {
-  "Software Engineer": [
-    "Explain time vs space complexity with a simple example.",
-    "What is the difference between a process and a thread?",
-    "SQL: Write a query to fetch the second highest salary.",
-    "How would you debug a program that fails only on edge cases?",
-    "Describe a project you built and your exact contribution."
-  ],
-  "Data Analyst": [
-    "Difference between JOIN and UNION with examples.",
-    "Explain p-value to a non-technical stakeholder.",
-    "How would you handle missing values in a dataset?",
-    "SQL: Find the top 3 performing products per region.",
-    "How would you explain insights from data to a CEO in 2 minutes?"
-  ],
-  "Cloud Engineer": [
-    "Explain VPC, Subnet, and Security Groups in simple terms.",
-    "Design a highly available web app on cloud—what components?",
-    "Blue/Green vs Rolling deployments—when to use which?",
-    "Two ways to reduce cloud costs without hurting reliability?",
-    "Outline a basic CI/CD pipeline for a containerized app."
-  ],
-  "QA Engineer": [
-    "Write test cases for a login page (happy & edge paths).",
-    "Smoke vs regression testing—explain with examples.",
-    "What is boundary value analysis and where would you use it?",
-    "How do you prioritize bugs when deadlines are tight?",
-    "Approach to automate tests for a web app from scratch?"
-  ],
-  "GET (Mechanical / Civil / EEE / Automobile)": [
-    "Thermodynamics/Bernoulli—explain a concept and application.",
-    "List common manufacturing processes and where they fit.",
-    "How do you estimate load-bearing capacity of a column?",
-    "Why did you choose your core branch and not IT?",
-    "One improvement you would make to a production line and why."
-  ],
-  "Consulting Analyst": [
-    "Guesstimate: Daily Uber rides in Chennai—walk through structure.",
-    "Tell me about solving a problem with incomplete data.",
-    "How would you persuade a client to adopt a digital solution?",
-    "Describe a team conflict and how you handled it.",
-    "Why consulting, and why this company?"
-  ],
-  "Business Analyst": [
-    "Improve user retention for a delivery app—top 3 hypotheses.",
-    "Which metrics matter most for a new product launch and why?",
-    "How do you manage conflicting stakeholder priorities?",
-    "Design a simple ops dashboard for a city manager.",
-    "Give a 30-second pitch for your favourite product and why."
-  ]
+// Comprehensive company-role based question bank for freshers
+const COMPANY_ROLE_QUESTIONS = {
+  "TCS": {
+    "Software Engineer": [
+      "Explain OOPS concepts with examples.",
+      "What is the difference between C and Java?",
+      "Write a SQL query to get the top 3 salaries.",
+      "What is normalization in databases?",
+      "Tell me about yourself in detail.",
+      "Explain Agile methodology in simple words.",
+      "What is the difference between REST and SOAP APIs?"
+    ]
+  },
+  "Infosys": {
+    "Software Engineer": [
+      "What are the four pillars of OOPS?",
+      "Explain SDLC phases.",
+      "How is Python different from Java?",
+      "Explain primary key vs foreign key.",
+      "Where do you see yourself in 5 years?",
+      "Explain microservices architecture.",
+      "What are the key benefits of DevOps?"
+    ],
+    "Data Analyst": [
+      "Difference between machine learning and deep learning?",
+      "How would you design a login system?",
+      "Why Infosys Digital over System Engineer?",
+      "What is data normalization?",
+      "Explain SQL vs NoSQL databases.",
+      "How do you handle missing data in analysis?",
+      "What is the difference between correlation and causation?"
+    ]
+  },
+  "Wipro": {
+    "Software Engineer": [
+      "What is encapsulation in OOPS?",
+      "Explain deadlock with example.",
+      "What are joins in SQL? Give examples.",
+      "How do you handle pressure situations?",
+      "Why do you want to work at Wipro?",
+      "What is polymorphism in programming?",
+      "Explain the concept of inheritance."
+    ]
+  },
+  "HCL": {
+    "Software Engineer": [
+      "Explain polymorphism with an example.",
+      "What is multithreading?",
+      "What is the use of indexes in databases?",
+      "Tell me about a challenge you faced in college.",
+      "Why should we hire you as a fresher?",
+      "What is abstraction in OOPS?",
+      "How do you debug a program?"
+    ]
+  },
+  "Accenture": {
+    "Software Engineer": [
+      "What is cloud computing? Types of cloud?",
+      "Explain SDLC Agile vs Waterfall.",
+      "What are functional and non-functional requirements?",
+      "Give an example of teamwork from college.",
+      "Why Accenture and not other IT companies?",
+      "What is API and how does it work?",
+      "Explain the concept of version control."
+    ]
+  },
+  "Zoho": {
+    "Software Engineer": [
+      "Explain difference between array and linked list.",
+      "Write a program to reverse a string.",
+      "What is recursion? Give an example.",
+      "Explain TCP vs UDP.",
+      "Why Zoho as your career choice?",
+      "What is a binary tree?",
+      "How do you optimize code performance?"
+    ]
+  },
+  "Amazon": {
+    "Software Engineer": [
+      "Explain Big-O notation with example.",
+      "How would you design an elevator system?",
+      "SQL: Get customers who ordered more than 3 times in a month.",
+      "What is Amazon's Leadership Principle you relate with?",
+      "Tell me about a time you solved a tough problem.",
+      "What is dynamic programming?",
+      "How do you handle system scalability?"
+    ]
+  },
+  "Microsoft": {
+    "Software Engineer": [
+      "What happens when you type a URL in a browser?",
+      "Explain garbage collection in Java or C#.",
+      "Design a data structure for an LRU cache.",
+      "What is polymorphism?",
+      "Why do you want to join Microsoft?",
+      "What is dependency injection?",
+      "How do you ensure code quality?"
+    ]
+  },
+  "Google": {
+    "Software Engineer": [
+      "Explain MapReduce in simple words.",
+      "Design a system like Google Docs (collaborative editor).",
+      "How would you detect spam emails?",
+      "Explain difference between supervised vs unsupervised ML.",
+      "What motivates you to join Google?",
+      "What is distributed computing?",
+      "How do you handle large datasets?"
+    ]
+  },
+  "Adobe": {
+    "Software Engineer": [
+      "What is inheritance in OOPS?",
+      "Explain MVC architecture.",
+      "How do you handle memory leaks?",
+      "What is a hash table and where is it used?",
+      "Why Adobe over other product companies?",
+      "What is event-driven programming?",
+      "How do you optimize user interfaces?"
+    ]
+  },
+  "L&T": {
+    "GET (Mechanical / Civil / EEE / Automobile)": [
+      "Explain stress vs strain with example.",
+      "What is shear force and bending moment?",
+      "Difference between RCC and PCC?",
+      "Tell me about a construction project you worked on.",
+      "Why do you want to join L&T?",
+      "What is project management?",
+      "How do you ensure safety in construction?"
+    ]
+  },
+  "Bosch": {
+    "GET (Mechanical / Civil / EEE / Automobile)": [
+      "Explain IC engine working.",
+      "What is Six Sigma?",
+      "What are different welding methods?",
+      "Tell me about your final year project.",
+      "Why Bosch as your first employer?",
+      "What is lean manufacturing?",
+      "How do you reduce production costs?"
+    ]
+  },
+  "Hyundai": {
+    "GET (Mechanical / Civil / EEE / Automobile)": [
+      "Explain thermodynamics laws in automobiles.",
+      "Difference between diesel and petrol engine?",
+      "How do you test vehicle safety?",
+      "What is lean manufacturing?",
+      "Why Hyundai and not another automobile company?",
+      "What is automotive electronics?",
+      "How do you improve fuel efficiency?"
+    ]
+  },
+  "Ford": {
+    "GET (Mechanical / Civil / EEE / Automobile)": [
+      "What is ABS and how does it work?",
+      "Explain supply chain process for automobiles.",
+      "What is Kaizen?",
+      "Describe a teamwork experience in college.",
+      "Why Ford Motors?",
+      "What is quality control in manufacturing?",
+      "How do you handle production deadlines?"
+    ]
+  },
+  "Ashok Leyland": {
+    "GET (Mechanical / Civil / EEE / Automobile)": [
+      "Explain suspension system basics.",
+      "What are emission norms (BS6)?",
+      "What is difference between torque and power?",
+      "How do you reduce production defects?",
+      "Why Ashok Leyland?",
+      "What is preventive maintenance?",
+      "How do you optimize vehicle design?"
+    ]
+  },
+  "Deloitte": {
+    "Consulting Analyst": [
+      "Explain SWOT analysis.",
+      "What are KPIs in consulting?",
+      "Tell me about a time you solved a problem with incomplete data.",
+      "How do you handle deadlines?",
+      "Why Deloitte?",
+      "What is business process improvement?",
+      "How do you manage client expectations?"
+    ]
+  },
+  "KPMG": {
+    "Consulting Analyst": [
+      "What is difference between audit and assurance?",
+      "What is risk-based auditing?",
+      "How do you prioritize client requirements?",
+      "Give an example of critical thinking you used.",
+      "Why KPMG?",
+      "What is financial analysis?",
+      "How do you present findings to clients?"
+    ]
+  },
+  "EY": {
+    "Consulting Analyst": [
+      "What is financial due diligence?",
+      "How do you deal with data inconsistencies?",
+      "Explain stakeholder management with example.",
+      "What is your strength that fits EY?",
+      "Why EY?",
+      "What is change management?",
+      "How do you handle confidential information?"
+    ]
+  },
+  "PwC": {
+    "Consulting Analyst": [
+      "What is digital transformation?",
+      "How would you analyze a failing business unit?",
+      "Tell me about a leadership role in college.",
+      "What is one weakness you are improving?",
+      "Why PwC?",
+      "What is strategic planning?",
+      "How do you work with diverse teams?"
+    ]
+  },
+  "Goldman Sachs": {
+    "Business Analyst": [
+      "Explain derivatives in simple words.",
+      "What is difference between equity and debt?",
+      "SQL: How do you find duplicate records?",
+      "How do you manage stress?",
+      "Why Goldman Sachs?",
+      "What is financial modeling?",
+      "How do you analyze market trends?"
+    ]
+  },
+  "JP Morgan": {
+    "Business Analyst": [
+      "What is investment banking in simple words?",
+      "Explain DB transaction ACID properties.",
+      "Tell me about an Excel formula you use often.",
+      "How do you prioritize tasks?",
+      "Why JP Morgan?",
+      "What is risk assessment?",
+      "How do you handle large datasets in Excel?"
+    ]
+  },
+  "Flipkart": {
+    "Business Analyst": [
+      "How would you improve Flipkart's checkout process?",
+      "What metrics matter most in e-commerce?",
+      "Explain recommendation systems briefly.",
+      "Tell me about a time you handled data ambiguity.",
+      "Why Flipkart?",
+      "What is A/B testing?",
+      "How do you measure customer satisfaction?"
+    ]
+  },
+  "Swiggy": {
+    "Business Analyst": [
+      "What metrics track food delivery efficiency?",
+      "How would you reduce late deliveries?",
+      "Design a dashboard for Swiggy operations.",
+      "What is your favorite feature of Swiggy and why?",
+      "Why Swiggy?",
+      "What is demand forecasting?",
+      "How do you optimize delivery routes?"
+    ]
+  },
+  "Zomato": {
+    "Business Analyst": [
+      "How would you improve Zomato Gold?",
+      "Which metrics show restaurant partner success?",
+      "Design a simple dashboard for restaurant ratings.",
+      "What motivates you in the food-tech sector?",
+      "Why Zomato?",
+      "What is customer retention strategy?",
+      "How do you analyze user behavior?"
+    ]
+  },
+  "Freshworks": {
+    "Sales/BD Associate": [
+      "How would you pitch Freshworks CRM to a small business?",
+      "What are the key challenges in SaaS sales?",
+      "Tell me about a time you convinced someone.",
+      "How do you handle rejection?",
+      "Why Freshworks?",
+      "What is customer lifecycle management?",
+      "How do you build client relationships?"
+    ]
+  }
 };
 
 const COMPANY_CATEGORIES = {
@@ -124,11 +359,22 @@ const MyInterviewWorld = () => {
       return;
     }
 
-    const questions = QUESTION_BANK[interviewData.role as keyof typeof QUESTION_BANK] || [];
+    const companyQuestions = COMPANY_ROLE_QUESTIONS[interviewData.company as keyof typeof COMPANY_ROLE_QUESTIONS];
+    const questions = companyQuestions?.[interviewData.role as keyof typeof companyQuestions] as string[] || [];
+    
+    if (questions.length === 0) {
+      toast({
+        title: "No Questions Available",
+        description: "No questions found for this company-role combination.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setInterviewData(prev => ({
       ...prev,
       questions: questions.slice(0, 7),
-      answers: new Array(7).fill("")
+      answers: new Array(Math.min(7, questions.length)).fill("")
     }));
     setCurrentStep("interview");
     toast({
