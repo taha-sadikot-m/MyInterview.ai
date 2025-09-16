@@ -68,10 +68,10 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        logo: ['Baloo 2', 'sans-serif'],
-        heading: ['Baloo 2', 'sans-serif'],
-        tagline: ['Poppins', 'sans-serif'],
-        body: ['Inter', 'sans-serif'],
+        brand: ['Merriweather', 'serif'],
+        heading: ['Poppins', 'sans-serif'],
+        tagline: ['Times New Roman', 'serif'],
+        body: ['Times New Roman', 'serif'],
         ui: ['Inter', 'sans-serif'],
       },
       keyframes: {
