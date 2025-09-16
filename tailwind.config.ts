@@ -68,11 +68,12 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        brand: ['Space Grotesk', 'sans-serif'],
-        heading: ['Space Grotesk', 'sans-serif'],
-        tagline: ['DM Sans', 'sans-serif'],
-        body: ['DM Sans', 'sans-serif'],
-        ui: ['Nunito', 'sans-serif'],
+        brand: ['Montserrat', 'sans-serif'],
+        heading: ['Montserrat', 'sans-serif'],
+        subheading: ['Poppins', 'sans-serif'],
+        body: ['Inter', 'sans-serif'],
+        ui: ['Poppins', 'sans-serif'],
+        fancy: ['Playfair Display', 'serif'],
       },
       keyframes: {
         "accordion-down": {
