@@ -47,94 +47,94 @@ const EventsSection = () => {
   ];
 
   return (
-    <section className="section-padding bg-gradient-to-b from-background to-muted/30">
-      <div className="section-content">
+    <section className="py-24 px-4 bg-gradient-to-b from-background to-neutral-soft">
+      <div className="container mx-auto">
         <div className="text-center mb-20">
-          <h2 className="font-heading text-5xl md:text-7xl mb-6 gradient-text">
+          <h2 className="font-heading text-6xl md:text-8xl mb-8 gradient-text-secondary">
             Upcoming Events
           </h2>
-          <p className="font-body text-xl text-muted-foreground max-w-4xl mx-auto">
-            Join thousands of students and professionals in our exciting speaking events and competitions.
+          <p className="font-body text-2xl text-foreground/80 max-w-5xl mx-auto">
+            Join thousands of Gen-Z speakers in our epic events and competitions! 🎉
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-2 gap-12">
           {events.map((event, index) => (
-            <Card key={index} className="card-modern group overflow-hidden hover:shadow-2xl">
+            <div key={index} className="card-genz group overflow-hidden">
               {/* Event Image */}
-              <div className="relative h-48 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-t-xl mb-6">
+              <div className="relative h-56 bg-gradient-to-br from-primary/30 to-secondary/30 rounded-3xl mb-8 overflow-hidden">
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-6xl opacity-50">
+                  <div className="text-8xl animate-bounce">
                     {event.type === "Competition" && "🏆"}
                     {event.type === "Workshop" && "🌍"}
                     {event.type === "Pitch" && "🚀"}
                     {event.type === "Training" && "💼"}
                   </div>
                 </div>
-                <div className="absolute top-4 left-4">
-                  <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-ui font-semibold">
+                <div className="absolute top-6 left-6">
+                  <span className="bg-gradient-to-r from-accent to-accent-pink text-white px-4 py-2 rounded-full text-sm font-ui font-semibold">
                     {event.badge}
                   </span>
                 </div>
-                <div className="absolute top-4 right-4">
-                  <span className="bg-black/20 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-ui">
+                <div className="absolute top-6 right-6">
+                  <span className="bg-black/30 backdrop-blur-md text-white px-4 py-2 rounded-full text-sm font-ui font-semibold">
                     {event.type}
                   </span>
                 </div>
               </div>
 
               {/* Event Details */}
-              <div className="space-y-6">
+              <div className="space-y-8">
                 <div>
-                  <h3 className="font-heading text-2xl mb-3 group-hover:gradient-text-purple transition-all duration-300">
+                  <h3 className="font-heading text-3xl mb-4 gradient-text group-hover:scale-105 transition-transform duration-300">
                     {event.title}
                   </h3>
-                  <p className="font-body text-muted-foreground">
+                  <p className="font-body text-foreground/70 text-lg leading-relaxed">
                     {event.description}
                   </p>
                 </div>
 
                 {/* Event Meta */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-5 h-5 text-primary" />
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="flex items-center gap-3 bg-white/60 p-4 rounded-2xl">
+                    <Calendar className="w-6 h-6 text-primary" />
                     <div>
-                      <p className="font-ui text-sm font-semibold">{event.date}</p>
-                      <p className="font-body text-xs text-muted-foreground">{event.time}</p>
+                      <p className="font-ui text-sm font-bold text-foreground">{event.date}</p>
+                      <p className="font-ui text-xs text-foreground/60">{event.time}</p>
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-5 h-5 text-primary" />
+                  <div className="flex items-center gap-3 bg-white/60 p-4 rounded-2xl">
+                    <MapPin className="w-6 h-6 text-secondary" />
                     <div>
-                      <p className="font-ui text-sm font-semibold truncate">{event.location}</p>
+                      <p className="font-ui text-sm font-bold text-foreground truncate">{event.location}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <Users className="w-5 h-5 text-emerald-500" />
-                    <p className="font-ui text-sm">{event.participants}</p>
+                  <div className="flex items-center gap-3 bg-white/60 p-4 rounded-2xl">
+                    <Users className="w-6 h-6 text-secondary-emerald" />
+                    <p className="font-ui text-sm font-bold text-foreground">{event.participants}</p>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-orange-500" />
-                    <p className="font-ui text-sm">Registration Open</p>
+                  <div className="flex items-center gap-3 bg-white/60 p-4 rounded-2xl">
+                    <Clock className="w-6 h-6 text-accent" />
+                    <p className="font-ui text-sm font-bold text-foreground">Registration Open</p>
                   </div>
                 </div>
 
                 {/* Register Button */}
-                <Button className="btn-emerald w-full text-lg py-4 rounded-2xl font-ui group-hover:scale-105 transition-transform duration-300">
-                  Register Now
+                <Button className="btn-secondary w-full text-xl py-6 rounded-3xl font-ui group-hover:scale-110 transition-all duration-500">
+                  Register Now ✨
                 </Button>
               </div>
-            </Card>
+            </div>
           ))}
         </div>
 
         {/* View All Events */}
-        <div className="text-center mt-16">
-          <Button className="btn-secondary text-lg px-8 py-4 rounded-2xl border-primary">
-            View All Events →
+        <div className="text-center mt-20">
+          <Button className="btn-primary text-2xl px-16 py-8 rounded-3xl font-ui">
+            View All Events 🎊
           </Button>
         </div>
       </div>

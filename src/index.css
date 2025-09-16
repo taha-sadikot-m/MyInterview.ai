@@ -2,13 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Speak Your Mind Design System - Modern Student-Friendly Theme */
+/* Gen-Z Inspired Design System - Modern & Vibrant */
 
 @layer base {
   :root {
-    /* Youth-Friendly Color Palette */
-    --background: 0 0% 98%; /* #F9FAFB - Off-white */
-    --foreground: 218 15% 25%; /* #374151 - Charcoal Gray */
+    /* Gen-Z Color Palette */
+    --background: 0 0% 100%; /* Pure White */
+    --foreground: 218 15% 25%; /* Charcoal Gray */
 
     --card: 0 0% 100%; /* Pure white cards */
     --card-foreground: 218 15% 25%; /* Charcoal text on cards */
@@ -16,50 +16,49 @@
     --popover: 0 0% 100%;
     --popover-foreground: 218 15% 25%;
 
-    /* Primary: Indigo Variations */
-    --primary: 234 89% 52%; /* #3F51B5 - Modern Indigo */
-    --primary-alt: 258 84% 51%; /* #4B0082 - Deep Indigo */
-    --primary-foreground: 0 0% 100%; /* White text on indigo */
-    --primary-hover: 234 89% 45%; /* Darker indigo for hover */
+    /* Primary Gradient: Indigo → Electric Purple → Neon Blue */
+    --primary: 267 84% 51%; /* #4B0082 - Deep Indigo */
+    --primary-electric: 262 83% 58%; /* #9333EA - Electric Purple */
+    --primary-neon: 217 91% 60%; /* #3B82F6 - Neon Blue */
+    --primary-foreground: 0 0% 100%; /* White text */
     
-    /* Secondary: Electric Purple */
-    --secondary: 262 83% 58%; /* #9333EA - Electric Purple */
+    /* Secondary Gradient: Aqua → Emerald → Lime */
+    --secondary: 188 94% 43%; /* #06B6D4 - Aqua */
+    --secondary-emerald: 160 84% 39%; /* #10B981 - Emerald */
+    --secondary-lime: 78 92% 45%; /* #84CC16 - Lime */
     --secondary-foreground: 0 0% 100%; /* White text */
     
-    /* Accent: Emerald Green */
-    --accent: 160 84% 39%; /* #10B981 - Emerald Green */
+    /* Accent Gradient: Sunset Orange → Hot Pink → Coral Red */
+    --accent: 22 100% 52%; /* #F97316 - Sunset Orange */
+    --accent-pink: 330 81% 60%; /* #EC4899 - Hot Pink */
+    --accent-coral: 8 100% 58%; /* #EF4444 - Coral Red */
     --accent-foreground: 0 0% 100%; /* White text */
 
-    /* Pop Color: Sunset Orange */
-    --orange: 22 100% 52%; /* #F97316 - Sunset Orange */
-    --orange-foreground: 0 0% 100%; /* White text */
-
-    /* UI Colors */
-    --muted: 220 14% 96%; /* Light gray */
+    /* Neutral Base */
+    --neutral-soft: 214 32% 96%; /* #F3F4F6 - Soft Gray */
+    --muted: 214 32% 96%; /* Soft Gray */
     --muted-foreground: 220 8% 46%; /* Medium gray text */
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%; /* Light borders */
+    --border: 214 32% 91%; /* Light borders */
     --input: 0 0% 100%; /* White inputs */
-    --ring: 234 89% 52%; /* Indigo focus ring */
+    --ring: 267 84% 51%; /* Indigo focus ring */
 
-    --radius: 1.5rem; /* Rounded corners */
+    --radius: 2rem; /* Extra rounded corners */
 
-    /* Youth-Friendly Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(234 89% 52%) 0%, hsl(258 84% 51%) 100%);
-    --gradient-purple: linear-gradient(135deg, hsl(262 83% 58%) 0%, hsl(258 84% 51%) 100%);
-    --gradient-emerald: linear-gradient(135deg, hsl(160 84% 39%) 0%, hsl(160 84% 49%) 100%);
-    --gradient-orange: linear-gradient(135deg, hsl(22 100% 52%) 0%, hsl(22 100% 62%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(220 14% 98%) 100%);
+    /* Gen-Z Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(267 84% 51%) 0%, hsl(262 83% 58%) 50%, hsl(217 91% 60%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(188 94% 43%) 0%, hsl(160 84% 39%) 50%, hsl(78 92% 45%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(22 100% 52%) 0%, hsl(330 81% 60%) 50%, hsl(8 100% 58%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(214 32% 98%) 100%);
     
-    /* Youth-Friendly Shadows */
-    --shadow-soft: 0 4px 20px -2px hsl(234 89% 52% / 0.1), 0 2px 8px -2px hsl(234 89% 52% / 0.06);
-    --shadow-button: 0 4px 15px 0 hsl(234 89% 52% / 0.2);
-    --shadow-hover: 0 10px 30px -5px hsl(262 83% 58% / 0.25), 0 4px 15px -5px hsl(262 83% 58% / 0.15);
-    --shadow-glow: 0 0 0 1px hsl(262 83% 58% / 0.1), 0 2px 4px 0 hsl(262 83% 58% / 0.1), 0 0 30px 0 hsl(262 83% 58% / 0.3);
-    --shadow-emerald: 0 4px 15px 0 hsl(160 84% 39% / 0.2);
+    /* Glow Shadows */
+    --shadow-glow-primary: 0 0 30px hsl(267 84% 51% / 0.3), 0 10px 40px hsl(262 83% 58% / 0.2);
+    --shadow-glow-secondary: 0 0 30px hsl(188 94% 43% / 0.3), 0 10px 40px hsl(160 84% 39% / 0.2);
+    --shadow-glow-accent: 0 0 30px hsl(22 100% 52% / 0.3), 0 10px 40px hsl(330 81% 60% / 0.2);
+    --shadow-soft: 0 8px 32px hsl(267 84% 51% / 0.1), 0 4px 16px hsl(267 84% 51% / 0.05);
     
     /* Fun Animations */
     --animation-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
@@ -104,25 +103,41 @@
     line-height: 1.5;
   }
 
-  /* Speak Your Mind Typography */
+  /* Gen-Z Typography System */
   .font-logo {
-    font-family: 'Playfair Display', serif;
-    font-weight: 700;
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 800;
     line-height: 1.1;
     letter-spacing: -0.02em;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
   .font-heading {
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Baloo 2', sans-serif;
     font-weight: 700;
     line-height: 1.2;
     letter-spacing: -0.01em;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .font-tagline {
+    font-family: 'Poppins', sans-serif;
+    font-style: italic;
+    font-weight: 600;
+    color: hsl(var(--primary-electric));
   }
 
   .font-body {
-    font-family: 'Times New Roman', Times, serif;
+    font-family: 'Inter', sans-serif;
     font-weight: 400;
     line-height: 1.6;
+    color: hsl(var(--foreground));
   }
 
   .font-ui {
@@ -133,150 +148,164 @@
 }
 
 @layer components {
-  .hero-gradient {
-    background: var(--gradient-hero);
-  }
-  
-  .card-gradient {
-    background: var(--gradient-card);
-  }
-  
-  .gradient-text {
-    background: var(--gradient-hero);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .gradient-text-purple {
-    background: var(--gradient-purple);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  
-  /* Youth-Friendly Button Styles */
-  .btn-primary {
-    background: var(--gradient-hero);
-    color: hsl(var(--primary-foreground));
-    border-radius: 2rem;
-    min-width: 200px;
-    min-height: 56px;
-    padding: 16px 32px;
-    box-shadow: var(--shadow-button);
-    transition: all 300ms var(--animation-bounce);
-    font-family: 'Poppins', sans-serif;
-    font-weight: 600;
-    font-size: 18px;
-    border: none;
-  }
-  
-  .btn-primary:hover {
-    box-shadow: var(--shadow-glow);
-    transform: translateY(-2px) scale(1.02);
-  }
-
-  .btn-secondary {
-    background: transparent;
-    color: hsl(var(--secondary));
-    border: 3px solid hsl(var(--secondary));
-    border-radius: 2rem;
-    min-width: 200px;
-    min-height: 56px;
-    padding: 16px 32px;
-    transition: all 300ms var(--animation-bounce);
-    font-family: 'Poppins', sans-serif;
-    font-weight: 600;
-    font-size: 18px;
-  }
-  
-  .btn-secondary:hover {
-    background: var(--gradient-purple);
-    color: hsl(var(--primary-foreground));
-    border-color: hsl(var(--secondary));
-    box-shadow: var(--shadow-hover);
-    transform: translateY(-2px) scale(1.02);
-  }
-
-  .btn-emerald {
-    background: var(--gradient-emerald);
-    color: hsl(var(--accent-foreground));
-    border-radius: 2rem;
-    border: none;
-    transition: all 300ms var(--animation-bounce);
-    font-family: 'Poppins', sans-serif;
-    font-weight: 600;
-  }
-  
-  .btn-emerald:hover {
-    box-shadow: var(--shadow-emerald);
-    transform: translateY(-2px) scale(1.05);
-  }
-
-  .btn-orange {
-    background: var(--gradient-orange);
-    color: hsl(var(--orange-foreground));
-    border-radius: 2rem;
-    border: none;
-    transition: all 300ms var(--animation-bounce);
-    font-family: 'Poppins', sans-serif;
-    font-weight: 600;
-  }
-  
-  .btn-orange:hover {
-    box-shadow: 0 4px 15px 0 hsl(22 100% 52% / 0.3);
-    transform: translateY(-2px) scale(1.05);
-  }
-  
-  /* Youth-Friendly Card Styles */
-  .card-modern {
-    background: var(--gradient-card);
-    border: 1px solid hsl(var(--border));
-    border-radius: 1.5rem;
-    padding: 32px;
-    box-shadow: var(--shadow-soft);
-    transition: all 400ms var(--animation-spring);
-  }
-  
-  .card-modern:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: var(--shadow-hover);
-    border-color: hsl(var(--secondary) / 0.3);
-  }
-
-  .card-world {
-    background: var(--gradient-card);
-    border: 2px solid hsl(var(--border));
-    border-radius: 2rem;
-    padding: 40px;
-    box-shadow: var(--shadow-soft);
-    transition: all 400ms var(--animation-spring);
-  }
-
-  .card-world:hover {
-    box-shadow: var(--shadow-glow);
-    transform: translateY(-12px) scale(1.05);
-    border-color: hsl(var(--secondary) / 0.5);
-  }
-  
-  /* Hero Section */
-  .hero-modern {
-    background: var(--gradient-hero);
-    color: hsl(var(--primary-foreground));
-    padding: 120px 0;
+  /* Gen-Z Hero & Gradient Styles */
+  .hero-primary {
+    background: var(--gradient-primary);
+    color: white;
     position: relative;
     overflow: hidden;
   }
-
-  .hero-modern::before {
+  
+  .hero-primary::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+    background: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='20' cy='20' r='1'/%3E%3C/g%3E%3C/svg%3E") repeat;
     pointer-events: none;
+  }
+  
+  .gradient-text {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-text-secondary {
+    background: var(--gradient-secondary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-text-accent {
+    background: var(--gradient-accent);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  /* Gen-Z Button Styles */
+  .btn-primary {
+    background: var(--gradient-primary);
+    color: white;
+    border-radius: 2rem;
+    padding: 16px 32px;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    transition: all 300ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    box-shadow: var(--shadow-glow-primary);
+  }
+  
+  .btn-primary:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: var(--shadow-glow-primary), 0 15px 50px hsl(267 84% 51% / 0.4);
+  }
+
+  .btn-secondary {
+    background: var(--gradient-secondary);
+    color: white;
+    border-radius: 2rem;
+    padding: 16px 32px;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    transition: all 300ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    box-shadow: var(--shadow-glow-secondary);
+  }
+  
+  .btn-secondary:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: var(--shadow-glow-secondary), 0 15px 50px hsl(188 94% 43% / 0.4);
+  }
+
+  .btn-accent {
+    background: var(--gradient-accent);
+    color: white;
+    border-radius: 2rem;
+    padding: 16px 32px;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    transition: all 300ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    box-shadow: var(--shadow-glow-accent);
+  }
+  
+  .btn-accent:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: var(--shadow-glow-accent), 0 15px 50px hsl(22 100% 52% / 0.4);
+  }
+
+  .btn-outline-primary {
+    background: transparent;
+    color: hsl(var(--primary));
+    border: 2px solid hsl(var(--primary));
+    border-radius: 2rem;
+    padding: 14px 30px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    transition: all 300ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+  
+  .btn-outline-primary:hover {
+    background: var(--gradient-primary);
+    color: white;
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: var(--shadow-glow-primary);
+  }
+  
+  /* Gen-Z Card Styles */
+  .card-genz {
+    background: var(--gradient-card);
+    border: 1px solid hsl(var(--border));
+    border-radius: 2rem;
+    padding: 32px;
+    box-shadow: var(--shadow-soft);
+    transition: all 400ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  
+  .card-genz:hover {
+    transform: translateY(-12px) rotate(1deg) scale(1.02);
+    box-shadow: var(--shadow-glow-primary);
+    border-color: hsl(var(--primary) / 0.3);
+  }
+
+  .card-world {
+    background: white;
+    border: 2px solid hsl(var(--border));
+    border-radius: 2rem;
+    padding: 40px;
+    box-shadow: var(--shadow-soft);
+    transition: all 400ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-world::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--gradient-primary);
+    opacity: 0;
+    transition: opacity 300ms ease;
+    border-radius: 2rem;
+  }
+
+  .card-world:hover {
+    transform: translateY(-16px) scale(1.05);
+    box-shadow: var(--shadow-glow-primary), 0 25px 80px hsl(267 84% 51% / 0.3);
+    border-color: hsl(var(--primary) / 0.5);
+  }
+
+  .card-world:hover::before {
+    opacity: 0.05;
   }
   
   /* Section Spacing */

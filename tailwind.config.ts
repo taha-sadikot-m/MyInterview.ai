@@ -68,9 +68,10 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        logo: ['Playfair Display', 'serif'],
-        heading: ['Poppins', 'sans-serif'],
-        body: ['Times New Roman', 'Times', 'serif'],
+        logo: ['Baloo 2', 'sans-serif'],
+        heading: ['Baloo 2', 'sans-serif'],
+        tagline: ['Poppins', 'sans-serif'],
+        body: ['Inter', 'sans-serif'],
         ui: ['Inter', 'sans-serif'],
       },
       keyframes: {

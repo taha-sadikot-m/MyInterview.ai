@@ -31,13 +31,13 @@ const WorldsSection = () => {
   ];
 
   return (
-    <section className="section-padding bg-background">
-      <div className="section-content">
+    <section className="py-24 px-4 bg-background">
+      <div className="container mx-auto">
         <div className="text-center mb-20">
           <h2 className="font-heading text-5xl md:text-7xl mb-6 gradient-text">
             Choose Your World
           </h2>
-          <p className="font-body text-xl text-muted-foreground max-w-4xl mx-auto">
+          <p className="font-body text-xl text-foreground/80 max-w-4xl mx-auto">
             Pick your speaking superpower and start your journey to become a confident, compelling communicator.
           </p>
         </div>
@@ -46,41 +46,41 @@ const WorldsSection = () => {
           {worlds.map((world, index) => (
             <div
               key={index}
-              className="card-world group cursor-pointer hover:shadow-2xl relative overflow-hidden"
+              className="card-world group cursor-pointer relative"
             >
               {/* Icon Section */}
-              <div className="text-center mb-8">
-                <div className={`w-24 h-24 bg-gradient-to-br ${world.color} rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-                  <world.icon className="w-12 h-12 text-white" />
+              <div className="text-center mb-8 relative z-10">
+                <div className={`w-28 h-28 bg-gradient-to-br ${world.color} rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500 shadow-2xl`}>
+                  <world.icon className="w-14 h-14 text-white" />
                 </div>
                 <div className="flex justify-center mb-4">
-                  <span className="text-4xl">⚡</span>
+                  <span className="text-5xl animate-bounce">⚡</span>
                 </div>
               </div>
 
               {/* Content */}
-              <div className="text-center space-y-6">
-                <h3 className="font-heading text-2xl md:text-3xl gradient-text-purple">
+              <div className="text-center space-y-6 relative z-10">
+                <h3 className="font-heading text-3xl md:text-4xl gradient-text">
                   {world.title}
                 </h3>
-                <p className="font-body text-muted-foreground leading-relaxed">
+                <p className="font-body text-foreground/70 leading-relaxed text-lg">
                   {world.description}
                 </p>
 
                 {/* Features */}
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {world.features.map((feature, featureIndex) => (
-                    <div key={featureIndex} className="flex items-center justify-center gap-2">
-                      <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                      <span className="font-ui text-sm text-muted-foreground">{feature}</span>
+                    <div key={featureIndex} className="flex items-center justify-center gap-3">
+                      <div className="w-3 h-3 bg-gradient-to-r from-primary-electric to-primary-neon rounded-full animate-pulse"></div>
+                      <span className="font-ui text-sm text-foreground/80 font-medium">{feature}</span>
                     </div>
                   ))}
                 </div>
 
                 {/* CTA Button */}
-                <div className="pt-6">
+                <div className="pt-8">
                   <Link to={world.link}>
-                    <Button className="btn-emerald w-full text-lg py-6 rounded-2xl font-ui">
+                    <Button className="btn-secondary w-full text-lg py-6 rounded-2xl font-ui">
                       {world.title === "MyDebateWorld" && "Enter Debate Arena"}
                       {world.title === "MyInterviewWorld" && "Start Interview Practice"}
                       {world.title === "MyPitchWorld" && "Pitch Like a Pro"}
@@ -88,19 +88,16 @@ const WorldsSection = () => {
                   </Link>
                 </div>
               </div>
-
-              {/* Hover Effect Background */}
-              <div className="absolute inset-0 bg-gradient-to-t from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
             </div>
           ))}
         </div>
 
         {/* Bottom CTA */}
-        <div className="text-center mt-20">
-          <p className="font-body text-lg text-muted-foreground mb-8">
+        <div className="text-center mt-24">
+          <p className="font-body text-xl text-foreground/80 mb-8">
             Not sure where to start? Take our quick assessment!
           </p>
-          <Button className="btn-orange text-lg px-8 py-4 rounded-2xl">
+          <Button className="btn-accent text-xl px-12 py-6 rounded-2xl font-ui">
             Find My Perfect World 🎯
           </Button>
         </div>

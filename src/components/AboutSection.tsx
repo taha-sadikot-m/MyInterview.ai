@@ -10,59 +10,59 @@ const AboutSection = () => {
   ];
 
   return (
-    <section className="section-padding bg-background">
-      <div className="section-content">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+    <section className="py-24 px-4 bg-background">
+      <div className="container mx-auto">
+        <div className="grid lg:grid-cols-2 gap-20 items-center">
           {/* Content Side */}
-          <div className="space-y-8">
-            <div className="space-y-6">
-              <h2 className="font-heading text-5xl md:text-6xl gradient-text leading-tight">
+          <div className="space-y-10">
+            <div className="space-y-8">
+              <h2 className="font-heading text-6xl md:text-7xl gradient-text-accent leading-tight">
                 Transforming Speakers, One Voice at a Time
               </h2>
-              <p className="font-body text-xl text-muted-foreground leading-relaxed">
-                At Speak Your Mind, we believe every student has the potential to be a powerful communicator. 
-                Our AI-powered platform provides personalized coaching that adapts to your unique style and pace.
+              <p className="font-body text-2xl text-foreground/80 leading-relaxed">
+                At Speak Your Mind, we believe every Gen-Z student has the potential to be a powerful communicator. 
+                Our AI-powered platform provides personalized coaching that adapts to your unique vibe and pace! ✨
               </p>
             </div>
 
             {/* Features */}
-            <div className="space-y-4">
+            <div className="space-y-6">
               {[
-                "🎯 Personalized AI coaching tailored to your needs",
+                "🎯 Personalized AI coaching tailored to your Gen-Z style",
                 "🏆 Real-time feedback with actionable improvements", 
                 "🌟 Practice with realistic scenarios and competitions",
-                "🚀 Track your progress and celebrate milestones"
+                "🚀 Track your progress and celebrate epic milestones"
               ].map((feature, index) => (
-                <div key={index} className="flex items-center gap-4">
-                  <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                  <span className="font-body text-muted-foreground">{feature}</span>
+                <div key={index} className="flex items-center gap-4 bg-white/50 p-4 rounded-2xl hover:bg-white/70 transition-all duration-300">
+                  <div className="w-4 h-4 bg-gradient-to-r from-secondary to-secondary-emerald rounded-full animate-pulse"></div>
+                  <span className="font-body text-foreground/80 text-lg">{feature}</span>
                 </div>
               ))}
             </div>
 
-            <div className="pt-6">
-              <Button className="btn-primary text-xl px-8 py-4 rounded-2xl group">
+            <div className="pt-8">
+              <Button className="btn-accent text-2xl px-12 py-6 rounded-3xl font-ui group">
                 Join the Movement
-                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+                <ArrowRight className="w-6 h-6 ml-3 group-hover:translate-x-2 transition-transform duration-300" />
               </Button>
             </div>
           </div>
 
           {/* Stats Side */}
-          <div className="space-y-8">
-            <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-10">
+            <div className="grid grid-cols-2 gap-8">
               {stats.map((stat, index) => (
                 <div 
                   key={index}
-                  className="card-modern text-center hover:scale-105 transition-all duration-300"
+                  className="card-genz text-center group"
                 >
-                  <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <stat.icon className="w-8 h-8 text-white" />
+                  <div className="w-20 h-20 bg-gradient-to-br from-primary to-primary-electric rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-125 group-hover:rotate-12 transition-all duration-500">
+                    <stat.icon className="w-10 h-10 text-white" />
                   </div>
-                  <div className="font-heading text-3xl md:text-4xl gradient-text-purple mb-2">
+                  <div className="font-heading text-4xl md:text-5xl gradient-text mb-3">
                     {stat.value}
                   </div>
-                  <div className="font-ui text-muted-foreground">
+                  <div className="font-ui text-foreground/70 text-lg">
                     {stat.label}
                   </div>
                 </div>
@@ -70,19 +70,19 @@ const AboutSection = () => {
             </div>
 
             {/* Success Story Quote */}
-            <div className="card-modern bg-gradient-to-br from-primary/5 to-secondary/5 border-primary/20">
-              <div className="space-y-4">
-                <div className="text-4xl">💬</div>
-                <p className="font-body italic text-lg text-muted-foreground">
-                  "Speak Your Mind transformed my confidence completely. I went from being terrified of public speaking to winning the national debate championship!"
+            <div className="card-genz bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/30">
+              <div className="space-y-6">
+                <div className="text-6xl animate-bounce">💬</div>
+                <p className="font-body italic text-xl text-foreground/80 leading-relaxed">
+                  "Speak Your Mind transformed my confidence completely! I went from being terrified of public speaking to winning the national debate championship! Absolutely life-changing! 🔥"
                 </p>
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center text-white font-ui font-bold">
+                  <div className="w-16 h-16 bg-gradient-to-br from-secondary-emerald to-secondary rounded-full flex items-center justify-center text-white font-ui font-bold text-xl">
                     A
                   </div>
                   <div>
-                    <div className="font-ui font-semibold">Ananya Sharma</div>
-                    <div className="font-body text-sm text-muted-foreground">Delhi University, Debate Champion</div>
+                    <div className="font-ui font-bold text-lg gradient-text">Ananya Sharma</div>
+                    <div className="font-body text-foreground/60">Delhi University, Debate Champion 🏆</div>
                   </div>
                 </div>
               </div>
@@ -91,20 +91,20 @@ const AboutSection = () => {
         </div>
 
         {/* Bottom CTA Section */}
-        <div className="text-center mt-20 space-y-8">
-          <div className="max-w-3xl mx-auto">
-            <h3 className="font-heading text-3xl md:text-4xl mb-6">
-              Ready to unlock your speaking potential?
+        <div className="text-center mt-24 space-y-10">
+          <div className="max-w-4xl mx-auto">
+            <h3 className="font-heading text-5xl md:text-6xl mb-8 gradient-text">
+              Ready to unlock your speaking superpowers?
             </h3>
-            <p className="font-body text-lg text-muted-foreground mb-8">
-              Join thousands of students who have already transformed their communication skills with our AI-powered platform.
+            <p className="font-body text-xl text-foreground/80 mb-10 leading-relaxed">
+              Join thousands of Gen-Z students who have already transformed their communication skills with our AI-powered platform! 🚀
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button className="btn-primary text-lg px-8 py-4 rounded-2xl">
-                Start Free Trial
+            <div className="flex flex-col lg:flex-row gap-6 justify-center">
+              <Button className="btn-primary text-2xl px-12 py-6 rounded-3xl font-ui">
+                Start Free Trial ✨
               </Button>
-              <Button className="btn-secondary text-lg px-8 py-4 rounded-2xl border-primary">
-                Watch Demo Video
+              <Button className="btn-outline-primary text-2xl px-12 py-6 rounded-3xl font-ui">
+                Watch Demo Video 🎬
               </Button>
             </div>
           </div>
