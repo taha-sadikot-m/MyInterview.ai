@@ -209,50 +209,72 @@ const MyDebateWorld = () => {
       <Navigation />
       
       {/* Hero Section */}
-      <section className="hero-indigo section-padding">
-        <div className="section-content text-center relative z-10">
-          <h1 className="font-heading text-6xl md:text-7xl font-bold text-white mb-6">
-            MyDebate — Be Ivy League Ready
-          </h1>
-          <p className="font-tagline text-2xl md:text-3xl text-white/95 mb-12">
-            Learn MUN, practice debates, and ace your school events with AI Judge feedback.
-          </p>
-          
-          <div className="flex flex-col lg:flex-row gap-8 justify-center items-center">
-            <Button 
-              onClick={() => setActiveSection('chanakya')}
-              className="btn-indigo min-w-[280px] h-16 text-lg"
-            >
-              <Brain className="w-6 h-6 mr-3" />
-              Debate with Chanakya
-            </Button>
-            
-            <Button 
-              onClick={() => setActiveSection('mun')}
-              className="btn-outline-indigo min-w-[280px] h-16 text-lg"
-            >
-              <BookOpen className="w-6 h-6 mr-3" />
-              MUN World
-            </Button>
-            
-            <Button 
-              onClick={() => setActiveSection('events')}
-              className="btn-outline-indigo min-w-[280px] h-16 text-lg"
-            >
-              <Trophy className="w-6 h-6 mr-3" />
-              School Events
-            </Button>
-          </div>
+      <section className="relative bg-background py-[120px] overflow-hidden">
+        {/* Subtle gradient overlay at edges */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-0 w-1/3 h-full bg-gradient-to-r from-primary/5 to-transparent"></div>
+          <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-secondary/5 to-transparent"></div>
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2/3 h-1/2 bg-gradient-to-t from-primary/3 to-transparent"></div>
+        </div>
 
-          <div className="mt-12">
-            <Button 
-              onClick={() => window.location.href = '/'}
-              variant="outline"
-              className="btn-outline-indigo"
-            >
-              <Home className="w-5 h-5 mr-2" />
-              Back to Home
-            </Button>
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="text-center max-w-4xl mx-auto">
+            {/* Headline */}
+            <h1 className="font-heading text-5xl md:text-7xl lg:text-8xl font-black text-foreground leading-tight mb-6">
+              MyDebateWorld
+            </h1>
+            
+            {/* Tagline */}
+            <h2 className="font-heading text-2xl md:text-3xl lg:text-4xl font-medium text-foreground mb-6 tracking-wider">
+              Battle with AI • Think fast • Speak smart
+            </h2>
+            
+            {/* Subtext */}
+            <h3 className="font-fancy text-xl md:text-2xl lg:text-3xl italic text-foreground mb-8">
+              Step into the arena — sharpen your debating skills with AI-powered challenges, MUNs, and live arenas.
+            </h3>
+            
+            {/* Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Button 
+                onClick={() => setActiveSection('chanakya')}
+                size="lg" 
+                className="btn-primary text-lg px-8 py-4 min-w-[280px] rounded-2xl font-medium"
+              >
+                <Zap className="w-5 h-5 mr-3" />
+                Enter Debate Arena ⚡
+              </Button>
+              
+              <Button 
+                onClick={() => setActiveSection('chanakya')}
+                variant="outline" 
+                size="lg" 
+                className="btn-outline text-lg px-8 py-4 min-w-[280px] rounded-2xl font-medium"
+              >
+                <Brain className="w-5 h-5 mr-3" />
+                Try AI Battle 🤖
+              </Button>
+              
+              <Button 
+                onClick={() => setActiveSection('mun')}
+                variant="outline" 
+                size="lg" 
+                className="btn-outline text-lg px-8 py-4 min-w-[280px] rounded-2xl font-medium"
+              >
+                <BookOpen className="w-5 h-5 mr-3" />
+                Start MUN Simulation 🌍
+              </Button>
+              
+              <Button 
+                onClick={() => setActiveSection('live')}
+                variant="outline" 
+                size="lg" 
+                className="btn-outline text-lg px-8 py-4 min-w-[280px] rounded-2xl font-medium"
+              >
+                <Mic className="w-5 h-5 mr-3" />
+                Join Live Arena 🎤
+              </Button>
+            </div>
           </div>
         </div>
       </section>

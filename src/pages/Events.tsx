@@ -68,31 +68,76 @@ const Events = () => {
       <Header />
       
       <div className="container mx-auto px-4 py-8">
-        {/* Page Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-heading font-bold text-foreground mb-4">
-            Community Events
-          </h1>
-          <p className="text-lg font-body text-foreground mb-6">
-            Join weekend sessions to practice, network, and improve your skills
-          </p>
-        </div>
+        {/* Hero Section */}
+        <section className="relative bg-background py-[120px] overflow-hidden">
+          {/* Subtle gradient overlay at edges */}
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-0 left-0 w-1/3 h-full bg-gradient-to-r from-primary/5 to-transparent"></div>
+            <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-secondary/5 to-transparent"></div>
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2/3 h-1/2 bg-gradient-to-t from-primary/3 to-transparent"></div>
+          </div>
 
-        {/* Instructions Panel */}
-        <Card className="mb-8 bg-card border rounded-2xl">
-          <CardHeader>
-            <CardTitle className="text-xl font-heading text-foreground flex items-center">
-              <Target className="w-5 h-5 mr-2 text-primary" />
-              Upcoming Events This Week
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="font-body text-foreground">
-              Choose from debate sessions, MUN simulations, interview clinics, and pitch nights. 
-              All events are designed for peer learning and skill development in a supportive community environment.
-            </p>
-          </CardContent>
-        </Card>
+          <div className="container mx-auto px-4 relative z-10">
+            <div className="text-center max-w-4xl mx-auto">
+              {/* Headline */}
+              <h1 className="font-heading text-5xl md:text-7xl lg:text-8xl font-black text-foreground leading-tight mb-6">
+                Events & Competitions
+              </h1>
+              
+              {/* Tagline */}
+              <h2 className="font-heading text-2xl md:text-3xl lg:text-4xl font-medium text-foreground mb-6 tracking-wider">
+                Join • Compete • Showcase your voice
+              </h2>
+              
+              {/* Subtext */}
+              <h3 className="font-fancy text-xl md:text-2xl lg:text-3xl italic text-foreground mb-8">
+                Register for debates, MUNs, pitch competitions, and hackathons. The stage is yours!
+              </h3>
+              
+              {/* Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <Button 
+                  size="lg" 
+                  className="btn-primary text-lg px-8 py-4 min-w-[250px] rounded-2xl font-medium"
+                >
+                  📝 Register Now
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="btn-outline text-lg px-8 py-4 min-w-[250px] rounded-2xl font-medium"
+                >
+                  👀 View Details
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="btn-outline text-lg px-8 py-4 min-w-[250px] rounded-2xl font-medium"
+                >
+                  📆 Add to Calendar
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="btn-outline text-lg px-8 py-4 min-w-[250px] rounded-2xl font-medium"
+                >
+                  🎓 Apply as Judge/Mentor
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="btn-outline text-lg px-8 py-4 min-w-[250px] rounded-2xl font-medium"
+                >
+                  🏆 View Past Winners
+                </Button>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* Events Grid */}
         <div className="grid lg:grid-cols-2 gap-8">

@@ -90,21 +90,65 @@ const Premium = () => {
       <Navigation />
       
       {/* Hero Section */}
-      <section className="hero-modern relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-primary-alt"></div>
-        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-24">
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <Crown className="h-12 w-12 text-yellow-400" />
-            <h1 className="font-heading text-5xl md:text-6xl font-bold text-white">
+      <section className="relative bg-background py-[120px] overflow-hidden">
+        {/* Subtle gradient overlay at edges */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-0 w-1/3 h-full bg-gradient-to-r from-primary/5 to-transparent"></div>
+          <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-secondary/5 to-transparent"></div>
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2/3 h-1/2 bg-gradient-to-t from-primary/3 to-transparent"></div>
+        </div>
+
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="text-center max-w-4xl mx-auto">
+            {/* Headline */}
+            <h1 className="font-heading text-5xl md:text-7xl lg:text-8xl font-black text-foreground leading-tight mb-6">
               Go Premium
             </h1>
+            
+            {/* Tagline */}
+            <h2 className="font-heading text-2xl md:text-3xl lg:text-4xl font-medium text-foreground mb-6 tracking-wider">
+              Practice smarter • Perform better
+            </h2>
+            
+            {/* Subtext */}
+            <h3 className="font-fancy text-xl md:text-2xl lg:text-3xl italic text-foreground mb-8">
+              Unlock advanced AI feedback, unlimited practice, reports, and priority access to live arenas & events.
+            </h3>
+            
+            {/* Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Button 
+                size="lg" 
+                className="btn-primary text-lg px-8 py-4 min-w-[280px] rounded-2xl font-medium"
+              >
+                🎁 Start Free Trial
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="btn-outline text-lg px-8 py-4 min-w-[280px] rounded-2xl font-medium"
+              >
+                📊 Compare Plans
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="btn-outline text-lg px-8 py-4 min-w-[280px] rounded-2xl font-medium"
+              >
+                ⭐ Upgrade to Pro
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="btn-outline text-lg px-8 py-4 min-w-[280px] rounded-2xl font-medium"
+              >
+                📞 Talk to Sales
+              </Button>
+            </div>
           </div>
-          <p className="font-body text-xl md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto">
-            Unlock advanced features & personalized training.
-          </p>
-          <Badge className="bg-yellow-400 text-black text-lg px-4 py-2 font-ui">
-            Transform Your Potential
-          </Badge>
         </div>
       </section>
 

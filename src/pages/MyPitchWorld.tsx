@@ -384,17 +384,89 @@ const MyPitchWorld = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="hero-gradient py-16 px-4">
-        <div className="container mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-bold font-heading text-foreground mb-4">
-            MyPitch World
-          </h1>
-          <p className="text-xl font-body italic text-foreground/90 mb-4">
-            "Pitch to AI investors. Practice. Improve. Convince."
-          </p>
-          <p className="text-lg font-body text-foreground/80 max-w-2xl mx-auto">
-            Simulate real investor Q&A with role-specific and stage-specific questions. Get actionable feedback like a real VC panel.
-          </p>
+      <section className="relative bg-background py-[120px] overflow-hidden">
+        {/* Subtle gradient overlay at edges */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-0 w-1/3 h-full bg-gradient-to-r from-primary/5 to-transparent"></div>
+          <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-secondary/5 to-transparent"></div>
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2/3 h-1/2 bg-gradient-to-t from-primary/3 to-transparent"></div>
+        </div>
+
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="text-center max-w-4xl mx-auto">
+            {/* Headline */}
+            <h1 className="font-heading text-5xl md:text-7xl lg:text-8xl font-black text-foreground leading-tight mb-6">
+              MyPitchWorld
+            </h1>
+            
+            {/* Tagline */}
+            <h2 className="font-heading text-2xl md:text-3xl lg:text-4xl font-medium text-foreground mb-6 tracking-wider">
+              Pitch smarter • Convince faster
+            </h2>
+            
+            {/* Subtext */}
+            <h3 className="font-fancy text-xl md:text-2xl lg:text-3xl italic text-foreground mb-8">
+              Simulate startup pitches with AI investors. Practice from ideation to MVP — and get real investor-style questions.
+            </h3>
+            
+            {/* Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center flex-wrap">
+              <Button 
+                size="lg" 
+                className="btn-primary text-lg px-8 py-4 min-w-[250px] rounded-2xl font-medium"
+              >
+                🚀 Choose Stage
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="btn-outline text-lg px-8 py-4 min-w-[250px] rounded-2xl font-medium"
+              >
+                🏭 Select Industry
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="btn-outline text-lg px-8 py-4 min-w-[250px] rounded-2xl font-medium"
+              >
+                🎤 Start Mock Pitch
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="btn-outline text-lg px-8 py-4 min-w-[250px] rounded-2xl font-medium"
+              >
+                📂 Upload Deck
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="btn-outline text-lg px-8 py-4 min-w-[250px] rounded-2xl font-medium"
+              >
+                💬 Investor Q&A
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="btn-outline text-lg px-8 py-4 min-w-[250px] rounded-2xl font-medium"
+              >
+                ⭐ Get Pitch Score
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="btn-outline text-lg px-8 py-4 min-w-[250px] rounded-2xl font-medium"
+              >
+                🔗 Share Pitch Link
+              </Button>
+            </div>
+          </div>
         </div>
       </section>
 
