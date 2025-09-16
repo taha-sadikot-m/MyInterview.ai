@@ -68,11 +68,11 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        brand: ['Merriweather', 'serif'],
-        heading: ['Poppins', 'sans-serif'],
-        tagline: ['Times New Roman', 'serif'],
-        body: ['Times New Roman', 'serif'],
-        ui: ['Inter', 'sans-serif'],
+        brand: ['Space Grotesk', 'sans-serif'],
+        heading: ['Space Grotesk', 'sans-serif'],
+        tagline: ['DM Sans', 'sans-serif'],
+        body: ['DM Sans', 'sans-serif'],
+        ui: ['Nunito', 'sans-serif'],
       },
       keyframes: {
         "accordion-down": {

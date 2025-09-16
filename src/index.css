@@ -2,57 +2,64 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Speak Your Mind - World-Class Design System */
+/* Lovable Gen Z - Vibrant Digital Brand System */
 
 @layer base {
   :root {
-    /* Core Theme: Indigo (#4F46E5) + White */
-    --background: 0 0% 100%; /* Pure White */
-    --foreground: 0 0% 0%; /* Black text */
+    /* Gen Z Lovable Color Palette */
+    --background: 0 0% 100%; /* Clean off-white */
+    --foreground: 220 13% 18%; /* Charcoal gray for readability */
 
-    --card: 0 0% 100%; /* White cards */
-    --card-foreground: 0 0% 0%; /* Black text on cards */
+    --card: 0 0% 100%; /* Pure white cards */
+    --card-foreground: 220 13% 18%; /* Charcoal text */
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
+    --popover-foreground: 220 13% 18%;
 
-    /* Primary: Indigo Theme */
-    --primary: 239 84% 67%; /* #4F46E5 - Indigo */
-    --primary-deep: 239 95% 43%; /* Deep Indigo */
+    /* Primary: Digital Teal */
+    --primary: 180 84% 45%; /* Bright digital teal #17A2B8 */
+    --primary-light: 180 65% 55%; /* Lighter teal for gradients */
     --primary-foreground: 0 0% 100%; /* White text */
     
-    /* Secondary: White base */
-    --secondary: 0 0% 96%; /* Light gray */
-    --secondary-foreground: 0 0% 0%; /* Black text */
+    /* Secondary: Soft Sage Green */
+    --secondary: 120 20% 85%; /* Sage green pastels */
+    --secondary-foreground: 220 13% 18%; /* Charcoal text */
     
-    /* Accent: Supporting colors */
-    --accent: 239 84% 67%; /* Indigo accent */
+    /* Accent: Electric Lavender */
+    --accent: 270 75% 70%; /* Bright lavender #B794F6 */
     --accent-foreground: 0 0% 100%; /* White text */
 
-    /* Neutral Base */
-    --muted: 220 14% 96%; /* Soft gray background */
+    /* Supporting Colors */
+    --magenta: 320 85% 65%; /* Digital magenta #E91E63 */
+    --peach: 25 90% 80%; /* Light peach pastels */
+    --lime: 85 85% 65%; /* Bright lime accent */
+
+    /* Neutral Base - Softer approach */
+    --muted: 120 15% 95%; /* Very light sage background */
     --muted-foreground: 220 9% 46%; /* Medium gray text */
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%; /* Light borders */
+    --border: 120 20% 90%; /* Soft borders */
     --input: 0 0% 100%; /* White inputs */
-    --ring: 239 84% 67%; /* Indigo focus ring */
+    --ring: 180 84% 45%; /* Teal focus ring */
 
-    --radius: 2rem; /* Generous rounded corners */
+    --radius: 1.5rem; /* Friendlier rounded corners */
 
-    /* Professional Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(239 84% 67%) 0%, hsl(239 95% 43%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(239 84% 67%) 0%, hsl(239 95% 43%) 50%, hsl(220 91% 60%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(220 14% 98%) 100%);
+    /* Lovable Gen Z Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(180 84% 45%) 0%, hsl(270 75% 70%) 50%, hsl(320 85% 65%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(85 85% 65%) 0%, hsl(120 60% 70%) 100%);
+    --gradient-warm: linear-gradient(135deg, hsl(25 90% 80%) 0%, hsl(320 85% 65%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(180 84% 45%) 0%, hsl(270 75% 70%) 30%, hsl(320 85% 65%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(120 15% 98%) 100%);
     
-    /* Elegant Shadows */
-    --shadow-glow: 0 0 40px hsl(239 84% 67% / 0.3), 0 20px 60px hsl(239 84% 67% / 0.15);
-    --shadow-lift: 0 20px 60px hsl(239 84% 67% / 0.1), 0 8px 30px hsl(239 84% 67% / 0.08);
-    --shadow-soft: 0 8px 32px hsl(220 13% 27% / 0.08), 0 4px 16px hsl(220 13% 27% / 0.04);
+    /* Lovable Shadows - Softer and more approachable */
+    --shadow-glow: 0 0 30px hsl(180 84% 45% / 0.25), 0 15px 40px hsl(270 75% 70% / 0.15);
+    --shadow-lift: 0 15px 35px hsl(180 84% 45% / 0.12), 0 5px 20px hsl(270 75% 70% / 0.08);
+    --shadow-soft: 0 6px 25px hsl(220 13% 27% / 0.06), 0 3px 12px hsl(220 13% 27% / 0.04);
     
-    /* Smooth Animations */
+    /* Gen Z Animations - Bouncy and fun */
     --animation-smooth: cubic-bezier(0.4, 0, 0.2, 1);
     --animation-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
     --animation-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -90,14 +97,14 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Times New Roman', Times, serif;
+    font-family: 'DM Sans', sans-serif;
     font-weight: 400;
-    line-height: 1.5;
+    line-height: 1.6;
   }
 
-  /* World-Class Typography System */
+  /* Gen Z Lovable Typography System */
   .font-brand {
-    font-family: 'Merriweather', serif;
+    font-family: 'Space Grotesk', sans-serif;
     font-weight: 700;
     line-height: 1.1;
     letter-spacing: -0.02em;
@@ -105,29 +112,30 @@
   }
 
   .font-heading {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 700;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
     line-height: 1.2;
     letter-spacing: -0.01em;
     color: hsl(var(--foreground));
   }
 
   .font-tagline {
-    font-family: 'Times New Roman', serif;
+    font-family: 'DM Sans', sans-serif;
     font-weight: 400;
+    font-style: italic;
     line-height: 1.6;
-    color: hsl(var(--foreground));
+    color: hsl(var(--accent));
   }
 
   .font-body {
-    font-family: 'Times New Roman', serif;
+    font-family: 'DM Sans', sans-serif;
     font-weight: 400;
     line-height: 1.6;
     color: hsl(var(--foreground));
   }
 
   .font-ui {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Nunito', sans-serif;
     font-weight: 500;
     line-height: 1.4;
     color: hsl(var(--foreground));
@@ -135,60 +143,78 @@
 }
 
 @layer components {
-  /* Professional Hero Styles */
-  .hero-indigo {
+  /* Gen Z Lovable Hero Styles */
+  .hero-modern {
     background: var(--gradient-hero);
     color: white;
     position: relative;
     overflow: hidden;
   }
   
-  .hero-indigo::before {
+  .hero-modern::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.08'%3E%3Ccircle cx='30' cy='30' r='1.5'/%3E%3C/g%3E%3C/svg%3E") repeat;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.08'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/svg%3E") repeat;
     pointer-events: none;
   }
   
-  /* World-Class Button Styles */
-  .btn-indigo {
+  /* Lovable Button Styles */
+  .btn-primary {
     background: var(--gradient-primary);
     color: white;
-    border-radius: 2rem;
-    padding: 20px 40px;
+    border-radius: 1.5rem;
+    padding: 16px 32px;
     border: none;
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    font-size: 1.125rem;
-    transition: all 300ms var(--animation-smooth);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 300ms var(--animation-bounce);
     box-shadow: var(--shadow-lift);
   }
   
-  .btn-indigo:hover {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: var(--shadow-glow), var(--shadow-lift);
+  .btn-primary:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: var(--shadow-glow);
   }
 
-  .btn-outline-indigo {
+  .btn-secondary {
+    background: var(--gradient-secondary);
+    color: white;
+    border-radius: 1.5rem;
+    padding: 16px 32px;
+    border: none;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 300ms var(--animation-bounce);
+    box-shadow: var(--shadow-lift);
+  }
+  
+  .btn-secondary:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .btn-outline {
     background: transparent;
     color: hsl(var(--primary));
     border: 2px solid hsl(var(--primary));
-    border-radius: 2rem;
-    padding: 18px 38px;
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    font-size: 1.125rem;
-    transition: all 300ms var(--animation-smooth);
+    border-radius: 1.5rem;
+    padding: 14px 30px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 300ms var(--animation-bounce);
   }
   
-  .btn-outline-indigo:hover {
+  .btn-outline:hover {
     background: var(--gradient-primary);
     color: white;
-    transform: translateY(-2px) scale(1.02);
+    transform: translateY(-2px) scale(1.05);
     box-shadow: var(--shadow-glow);
   }
 
@@ -199,9 +225,9 @@
     width: 80px;
     height: 80px;
     border: none;
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    transition: all 300ms var(--animation-smooth);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 600;
+    transition: all 300ms var(--animation-bounce);
     box-shadow: var(--shadow-lift);
     display: flex;
     align-items: center;
@@ -209,45 +235,45 @@
   }
   
   .btn-mic:hover {
-    transform: scale(1.1);
+    transform: scale(1.15);
     box-shadow: var(--shadow-glow);
   }
 
   .btn-mic.recording {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    background: linear-gradient(135deg, hsl(320 85% 65%) 0%, hsl(0 84% 60%) 100%);
     animation: pulse 2s infinite;
   }
   
-  /* Professional Card Styles */
-  .card-world-class {
+  /* Lovable Card Styles */
+  .card-modern {
     background: white;
-    border: 1px solid hsl(var(--border));
-    border-radius: 2rem;
-    padding: 40px;
+    border: 2px solid hsl(var(--border));
+    border-radius: 1.5rem;
+    padding: 32px;
     box-shadow: var(--shadow-soft);
     transition: all 400ms var(--animation-spring);
     position: relative;
     overflow: hidden;
   }
 
-  .card-world-class:hover {
-    transform: translateY(-8px) scale(1.02);
+  .card-modern:hover {
+    transform: translateY(-6px) scale(1.02);
     box-shadow: var(--shadow-lift);
-    border-color: hsl(var(--primary) / 0.3);
+    border-color: hsl(var(--primary) / 0.4);
   }
 
   .card-judge-panel {
     background: var(--gradient-card);
-    border: 2px solid hsl(var(--primary) / 0.2);
-    border-radius: 2rem;
-    padding: 40px;
+    border: 2px solid hsl(var(--accent) / 0.3);
+    border-radius: 1.5rem;
+    padding: 32px;
     box-shadow: var(--shadow-soft);
     transition: all 400ms var(--animation-spring);
   }
 
   .card-judge-panel:hover {
     box-shadow: var(--shadow-lift);
-    border-color: hsl(var(--primary) / 0.4);
+    border-color: hsl(var(--accent) / 0.5);
   }
   
   /* Section Spacing - Generous */
