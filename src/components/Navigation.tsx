@@ -8,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import symLogo from "@/assets/sym-logo.png";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -23,12 +24,19 @@ const Navigation = () => {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 bg-primary text-white shadow-lg">
+    <nav className="sticky top-0 z-50 bg-gradient-to-r from-[hsl(var(--nav-background))] to-[hsl(var(--primary-dark))] shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex-shrink-0">
-            <h1 className="font-brand text-2xl font-bold">Speak Your Mind</h1>
+          <Link to="/" className="flex items-center space-x-3">
+            <img 
+              src={symLogo} 
+              alt="Speak Your Mind Logo" 
+              className="h-10 w-10 rounded-full"
+            />
+            <span className="font-brand text-xl text-white">
+              Speak Your Mind
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -130,7 +138,7 @@ const Navigation = () => {
         {/* Mobile Navigation */}
         {isMenuOpen && (
           <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-primary">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-[hsl(var(--primary-dark))] border-t border-white/20">
               <Link
                 to="/"
                 className="font-ui block px-3 py-2 rounded-md text-base font-medium text-white/80 hover:text-white hover:bg-white/10"

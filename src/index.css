@@ -2,11 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Speak Your Mind - Modern Blue→Teal Design System */
+/* Speak Your Mind - Purple Brand Design System */
 
 @layer base {
   :root {
-    /* Modern Blue→Teal Color Palette */
+    /* Purple Brand Color Palette (from logo) */
     --background: 173 80% 96%; /* Light teal background */
     --foreground: 220 13% 18%; /* Dark gray text for contrast */
 
@@ -16,16 +16,20 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 13% 18%;
 
-    /* Primary: Blue → Teal Gradient */
-    --primary: 217 91% 60%; /* Blue #2563EB */
-    --primary-teal: 173 80% 40%; /* Teal #14B8A6 */
+    /* Primary: Purple from logo */
+    --primary: 270 50% 70%; /* Purple/Lavender from logo */
+    --primary-dark: 270 50% 45%; /* Darker purple */
     --primary-foreground: 0 0% 100%; /* White text */
+    
+    /* Navigation: Purple theme */
+    --nav-background: 270 50% 60%; /* Purple for navigation */
+    --nav-foreground: 0 0% 100%; /* White text on nav */
     
     /* Secondary: Light cards */
     --secondary: 0 0% 100%; /* White for subtle elements */
     --secondary-foreground: 220 13% 18%; /* Dark gray text */
     
-    /* Accent: Aqua for highlights */
+    /* Accent: Teal complement */
     --accent: 186 100% 44%; /* Aqua #06B6D4 */
     --accent-foreground: 0 0% 100%; /* White text */
 
@@ -38,18 +42,19 @@
 
     --border: 173 30% 85%; /* Light teal borders */
     --input: 0 0% 100%; /* White inputs */
-    --ring: 217 91% 60%; /* Blue focus ring */
+    --ring: 270 50% 70%; /* Purple focus ring */
 
     --radius: 1.5rem; /* Rounded 2xl corners */
 
-    /* Professional Blue→Teal Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(173 80% 40%) 100%);
-    --gradient-hover: linear-gradient(135deg, hsl(217 91% 65%) 0%, hsl(173 80% 45%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(186 100% 44%) 50%, hsl(173 80% 40%) 100%);
+    /* Purple Brand Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(270 50% 70%) 0%, hsl(270 50% 45%) 100%);
+    --gradient-nav: linear-gradient(135deg, hsl(270 50% 60%) 0%, hsl(270 50% 50%) 100%);
+    --gradient-hover: linear-gradient(135deg, hsl(270 50% 75%) 0%, hsl(270 50% 50%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(270 50% 70%) 0%, hsl(186 100% 44%) 50%, hsl(173 80% 40%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(173 80% 98%) 100%);
     
     /* Modern Shadows */
-    --shadow-glow: 0 0 30px hsl(217 91% 60% / 0.3), 0 15px 40px hsl(173 80% 40% / 0.2);
+    --shadow-glow: 0 0 30px hsl(270 50% 70% / 0.3), 0 15px 40px hsl(270 50% 45% / 0.2);
     --shadow-soft: 0 4px 20px hsl(173 80% 40% / 0.15), 0 2px 8px hsl(173 80% 40% / 0.08);
     --shadow-card: 0 8px 25px hsl(173 80% 40% / 0.1), 0 3px 10px hsl(173 80% 40% / 0.05);
     
