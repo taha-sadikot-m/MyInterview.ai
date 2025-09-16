@@ -24,7 +24,7 @@ const Navigation = () => {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 bg-gradient-to-r from-[hsl(var(--nav-background))] to-[hsl(var(--primary-dark))] shadow-lg">
+    <nav className="sticky top-0 z-50 bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary-teal))] shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -138,7 +138,7 @@ const Navigation = () => {
         {/* Mobile Navigation */}
         {isMenuOpen && (
           <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-[hsl(var(--primary-dark))] border-t border-white/20">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-[hsl(var(--primary-teal))] border-t border-white/20">
               <Link
                 to="/"
                 className="font-ui block px-3 py-2 rounded-md text-base font-medium text-white/80 hover:text-white hover:bg-white/10"
