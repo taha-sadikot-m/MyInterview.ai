@@ -4,9 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { VoiceRecorder } from "@/components/VoiceRecorder";
 import { JudgePanel } from "@/components/JudgePanel";
+import Navigation from "@/components/Navigation";
 import { 
   Mic, 
   BookOpen, 
@@ -19,7 +19,13 @@ import {
   Play,
   TrendingUp,
   Zap,
-  Volume2
+  Volume2,
+  Calendar,
+  MapPin,
+  Clock,
+  FileText,
+  ExternalLink,
+  Home
 } from "lucide-react";
 
 // Mock data
@@ -44,31 +50,26 @@ const MUN_FAQS = [
   }
 ];
 
-const DEBATE_TOPICS = [
-  // NCERT Curriculum Topics
-  "Should homework be banned in schools?",
-  "Is AI replacing teachers beneficial for education?",
-  "Should schools teach only in English or local languages?",
-  "Climate change education should be mandatory",
-  "Social media pros and cons for teenagers",
-  "Should school uniforms be compulsory?",
-  "Online vs classroom learning effectiveness",
-  "Should smartphones be banned in schools?",
-  // GenZ Topics
-  "Influencers vs traditional teachers",
-  "TikTok in education: helpful or harmful?",
-  "E-sports should be a school subject",
-  "AI is a friend, not foe for students",
-  "Instagram vs reality: impact on teens"
-];
+const DEBATE_TOPICS = {
+  ncert: [
+    "Should homework be banned in schools?",
+    "Is AI replacing teachers beneficial for education?", 
+    "Should schools teach only in English or local languages?",
+    "Climate change education should be mandatory",
+    "Should school uniforms be compulsory?",
+    "Online vs classroom learning effectiveness"
+  ],
+  genz: [
+    "Social media pros and cons for teenagers",
+    "Should smartphones be banned in schools?",
+    "Influencers vs traditional teachers",
+    "TikTok in education: helpful or harmful?", 
+    "E-sports should be a school subject",
+    "AI is a friend, not foe for students"
+  ]
+};
 
 const SCHOOL_EVENTS = [
-  { 
-    title: "News Reading in Assembly", 
-    description: "Practice reading news with proper pace and pronunciation",
-    icon: Mic,
-    criteria: ["Pronunciation", "Pace", "Clarity", "Confidence"]
-  },
   { 
     title: "English Elocution", 
     description: "Master the art of public speaking in English",
@@ -76,29 +77,52 @@ const SCHOOL_EVENTS = [
     criteria: ["Expression", "Voice Modulation", "Body Language", "Content"]
   },
   { 
-    title: "Hindi/Regional Recitation", 
-    description: "Perfect your Hindi or regional language delivery",
-    icon: BookOpen,
-    criteria: ["Language Fluency", "Expression", "Cultural Context", "Delivery"]
+    title: "Assembly News Reading", 
+    description: "Practice reading news with proper pace and pronunciation",
+    icon: Mic,
+    criteria: ["Pronunciation", "Pace", "Clarity", "Confidence"]
   },
   { 
-    title: "Extempore", 
-    description: "Impromptu speaking on random topics",
-    icon: Brain,
-    criteria: ["Quick Thinking", "Structure", "Confidence", "Time Management"]
-  },
-  { 
-    title: "Storytelling/Narration", 
-    description: "Engage audience with compelling storytelling",
-    icon: Target,
-    criteria: ["Creativity", "Engagement", "Voice Variation", "Timing"]
-  },
-  { 
-    title: "House/Inter-School Debate", 
+    title: "Inter-School Debate Practice", 
     description: "Competitive debate formats and strategies",
     icon: Trophy,
     criteria: ["Logical Arguments", "Rebuttals", "Research", "Presentation"]
   }
+];
+
+const COMMITTEE_MOTIONS = [
+  { 
+    committee: "UNGA", 
+    motions: ["Climate Action Implementation", "Global Education Standards", "Digital Divide Solutions"] 
+  },
+  { 
+    committee: "UNICEF", 
+    motions: ["Child Protection Online", "Educational Access", "Nutrition Security"] 
+  },
+  { 
+    committee: "UNEP", 
+    motions: ["Plastic Waste Management", "Renewable Energy Transition", "Biodiversity Conservation"] 
+  },
+  { 
+    committee: "WHO", 
+    motions: ["Mental Health Awareness", "Healthcare Accessibility", "Pandemic Preparedness"] 
+  },
+  { 
+    committee: "UNHRC", 
+    motions: ["Digital Rights", "Freedom of Expression", "Refugee Protection"] 
+  },
+  { 
+    committee: "UNSC", 
+    motions: ["Cybersecurity Threats", "Peace Building", "International Cooperation"] 
+  }
+];
+
+const RESEARCH_LINKS = [
+  { title: "CIA World Factbook", url: "#", description: "Comprehensive country data" },
+  { title: "UNData", url: "#", description: "UN statistical database" },
+  { title: "World Bank", url: "#", description: "Economic and development data" },
+  { title: "UNICEF Data", url: "#", description: "Child welfare statistics" },
+  { title: "Our World in Data", url: "#", description: "Research and data visualization" }
 ];
 
 const LEADERBOARD_DATA = [
@@ -109,11 +133,36 @@ const LEADERBOARD_DATA = [
   { user: "Vikram N.", badge: "Ivy Ready", score: 83 }
 ];
 
-type Section = 'mun' | 'practice' | 'events' | 'gsl' | 'topics' | 'leaderboard';
+const UPCOMING_EVENTS = [
+  {
+    title: "Weekly Public Speaking Class",
+    date: "Every Saturday",
+    time: "5:00 PM IST",
+    mode: "Online (Zoom)",
+    type: "weekly"
+  },
+  {
+    title: "Inter-School MUN Practice",
+    date: "Dec 16, 2024",
+    time: "10:00 AM IST", 
+    mode: "On-campus",
+    type: "event"
+  },
+  {
+    title: "Debate Championship Prep",
+    date: "Dec 17, 2024",
+    time: "2:00 PM IST",
+    mode: "Online",
+    type: "event"
+  }
+];
+
+type Section = 'chanakya' | 'mun' | 'events' | 'live' | 'leaderboard';
 
 const MyDebateWorld = () => {
-  const [activeSection, setActiveSection] = useState<Section>('mun');
+  const [activeSection, setActiveSection] = useState<Section>('chanakya');
   const [selectedTopic, setSelectedTopic] = useState("");
+  const [selectedTopicCategory, setSelectedTopicCategory] = useState<'ncert' | 'genz'>('ncert');
   const [selectedEvent, setSelectedEvent] = useState("");
   const [showJudgePanel, setShowJudgePanel] = useState(false);
   const [currentStep, setCurrentStep] = useState<'topic' | 'recording' | 'feedback'>('topic');
@@ -157,19 +206,21 @@ const MyDebateWorld = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Navigation />
+      
       {/* Hero Section */}
       <section className="hero-indigo section-padding">
         <div className="section-content text-center relative z-10">
           <h1 className="font-heading text-6xl md:text-7xl font-bold text-white mb-6">
-            Debate World — Be Ivy League Ready
+            MyDebate — Be Ivy League Ready
           </h1>
           <p className="font-tagline text-2xl md:text-3xl text-white/95 mb-12">
-            Learn MUN, practice debates, and prepare for real Indian school events.
+            Learn MUN, practice debates, and ace your school events with AI Judge feedback.
           </p>
           
           <div className="flex flex-col lg:flex-row gap-8 justify-center items-center">
             <Button 
-              onClick={() => setActiveSection('practice')}
+              onClick={() => setActiveSection('chanakya')}
               className="btn-indigo min-w-[280px] h-16 text-lg"
             >
               <Brain className="w-6 h-6 mr-3" />
@@ -181,7 +232,7 @@ const MyDebateWorld = () => {
               className="btn-outline-indigo min-w-[280px] h-16 text-lg"
             >
               <BookOpen className="w-6 h-6 mr-3" />
-              MUN 101
+              MUN World
             </Button>
             
             <Button 
@@ -192,42 +243,319 @@ const MyDebateWorld = () => {
               School Events
             </Button>
           </div>
+
+          <div className="mt-12">
+            <Button 
+              onClick={() => window.location.href = '/'}
+              variant="outline"
+              className="btn-outline-indigo"
+            >
+              <Home className="w-5 h-5 mr-2" />
+              Back to Home
+            </Button>
+          </div>
         </div>
       </section>
 
       <div className="section-content">
-        {/* MUN 101 Section */}
+        {/* Section A: Debate with Chanakya */}
+        {activeSection === 'chanakya' && (
+          <section className="section-padding fade-in">
+            <div className="text-center mb-16">
+              <h2 className="font-heading text-5xl font-bold mb-6 text-foreground">
+                Debate with Chanakya
+              </h2>
+              <p className="font-body text-xl text-muted-foreground max-w-3xl mx-auto">
+                Train with AI Chanakya, the ancient strategist, to master persuasive debate and logical argumentation.
+              </p>
+            </div>
+
+            <div className="grid lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
+              {/* Topic Picker Card */}
+              <Card className="card-world-class">
+                <CardHeader className="text-center">
+                  <div className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <Target className="w-10 h-10 text-primary" />
+                  </div>
+                  <CardTitle className="font-heading text-2xl mb-4">Choose Your Topic</CardTitle>
+                  <CardDescription className="font-body">
+                    Select from NCERT curriculum themes or trending GenZ debates
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Category Toggle */}
+                  <div className="flex rounded-2xl bg-muted p-2">
+                    <Button
+                      onClick={() => setSelectedTopicCategory('ncert')}
+                      className={`flex-1 rounded-xl transition-all ${
+                        selectedTopicCategory === 'ncert' 
+                          ? 'bg-primary text-white shadow-md' 
+                          : 'bg-transparent text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      NCERT Themes
+                    </Button>
+                    <Button
+                      onClick={() => setSelectedTopicCategory('genz')}
+                      className={`flex-1 rounded-xl transition-all ${
+                        selectedTopicCategory === 'genz' 
+                          ? 'bg-primary text-white shadow-md' 
+                          : 'bg-transparent text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      Gen Z Topics
+                    </Button>
+                  </div>
+
+                  {/* Topic Selector */}
+                  <Select value={selectedTopic} onValueChange={setSelectedTopic}>
+                    <SelectTrigger className="h-14 font-ui text-lg">
+                      <SelectValue placeholder="Choose your debate topic" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DEBATE_TOPICS[selectedTopicCategory].map((topic, index) => (
+                        <SelectItem key={index} value={topic} className="font-body py-3">
+                          {topic}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {/* Example Topics Display */}
+                  <div className="bg-muted/50 rounded-xl p-4">
+                    <h5 className="font-ui font-medium mb-3 text-sm text-muted-foreground">
+                      {selectedTopicCategory === 'ncert' ? 'NCERT Examples:' : 'GenZ Examples:'}
+                    </h5>
+                    <div className="space-y-2">
+                      {DEBATE_TOPICS[selectedTopicCategory].slice(0, 3).map((topic, index) => (
+                        <p key={index} className="font-body text-sm text-foreground italic">
+                          • {topic}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Voice Loop Card */}
+              <Card className="card-world-class">
+                <CardHeader className="text-center">
+                  <div className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <Mic className="w-10 h-10 text-primary" />
+                  </div>
+                  <CardTitle className="font-heading text-2xl mb-4">Voice Practice</CardTitle>
+                  <CardDescription className="font-body">
+                    AI Chanakya will guide you through the debate
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {selectedTopic && (
+                    <div className="p-4 bg-primary/5 rounded-xl border border-primary/20">
+                      <p className="font-body text-sm text-muted-foreground mb-2">Selected Topic:</p>
+                      <p className="font-ui font-medium text-foreground">{selectedTopic}</p>
+                    </div>
+                  )}
+
+                  <div className="space-y-4">
+                    <Button 
+                      className="btn-outline-indigo w-full h-12"
+                      disabled={!selectedTopic}
+                    >
+                      <Volume2 className="w-5 h-5 mr-2" />
+                      Hear Motion (TTS)
+                    </Button>
+
+                    <VoiceRecorder 
+                      onRecordingComplete={handleRecordingComplete}
+                      placeholder="Press the mic to respond with your 90-second argument"
+                      maxDuration={90}
+                    />
+
+                    <div className="text-center text-sm text-muted-foreground">
+                      Chanakya will ask 2-3 follow-up questions after your speech
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Judge Panel Results */}
+            {showJudgePanel && (
+              <div className="mt-16 fade-in">
+                <JudgePanel type="debate" data={mockDebateJudgeData} />
+                <div className="flex justify-center gap-6 mt-8">
+                  <Button 
+                    onClick={() => {
+                      setCurrentStep('topic');
+                      setShowJudgePanel(false);
+                      setSelectedTopic("");
+                    }}
+                    className="btn-indigo"
+                  >
+                    Practice Again
+                  </Button>
+                  <Button variant="outline" className="btn-outline-indigo">
+                    Save to Dashboard
+                  </Button>
+                  <Button variant="outline" className="btn-outline-indigo">
+                    Download Report
+                  </Button>
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Section B: MUN World */}
         {activeSection === 'mun' && (
           <section className="section-padding fade-in">
             <div className="text-center mb-16">
               <h2 className="font-heading text-5xl font-bold mb-6 text-foreground">
-                MUN 101 - Learn the Fundamentals
+                MUN World — Learn, Research, Upload & Improve
               </h2>
               <p className="font-body text-xl text-muted-foreground max-w-3xl mx-auto">
-                Master Model United Nations with comprehensive guides and expert insights.
+                Complete MUN preparation with resources, practice, and AI feedback.
               </p>
             </div>
 
-            {/* Video Cards */}
-            <div className="grid md:grid-cols-3 gap-8 mb-16">
-              {MUN_VIDEOS.map((video, index) => (
-                <Card key={index} className="card-world-class hover-lift">
-                  <CardHeader className="text-center">
-                    <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <video.icon className="w-8 h-8 text-primary" />
+            {/* Resource Tiles */}
+            <div className="grid lg:grid-cols-2 gap-8 mb-16">
+              {/* MUN 101 Videos */}
+              <Card className="card-world-class">
+                <CardHeader>
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
+                      <Play className="w-6 h-6 text-primary" />
                     </div>
-                    <CardTitle className="font-heading text-xl">{video.title}</CardTitle>
-                    <CardDescription className="font-body">{video.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="text-center">
-                    <Badge className="bg-primary/10 text-primary mb-4">{video.duration}</Badge>
-                    <Button className="btn-indigo w-full">
-                      <Play className="w-5 h-5 mr-2" />
-                      Watch Now
+                    <CardTitle className="font-heading text-xl">MUN 101 Videos</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {MUN_VIDEOS.map((video, index) => (
+                    <div key={index} className="flex items-center gap-4 p-4 bg-muted/30 rounded-xl hover:bg-muted/50 transition-colors">
+                      <video.icon className="w-8 h-8 text-primary" />
+                      <div className="flex-1">
+                        <h5 className="font-ui font-medium">{video.title}</h5>
+                        <p className="font-body text-sm text-muted-foreground">{video.description}</p>
+                      </div>
+                      <Badge className="bg-primary/10 text-primary">{video.duration}</Badge>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              {/* GSL Upload */}
+              <Card className="card-world-class">
+                <CardHeader>
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
+                      <Upload className="w-6 h-6 text-primary" />
+                    </div>
+                    <CardTitle className="font-heading text-xl">GSL Upload & Practice</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="border-2 border-dashed border-primary/30 rounded-xl p-8 text-center">
+                    <FileText className="w-12 h-12 text-primary mx-auto mb-4" />
+                    <p className="font-body text-muted-foreground mb-4">
+                      Upload your GSL speech or position paper
+                    </p>
+                    <p className="font-body text-xs text-muted-foreground mb-4">
+                      Supports PDF, DOCX, Audio, Video files
+                    </p>
+                    <Button className="btn-indigo">Choose File</Button>
+                  </div>
+                  
+                  <div className="text-center">
+                    <p className="font-body text-sm text-muted-foreground mb-4">or</p>
+                    <Button className="btn-outline-indigo w-full">
+                      <Mic className="w-5 h-5 mr-2" />
+                      Record GSL Speech
                     </Button>
-                  </CardContent>
-                </Card>
-              ))}
+                  </div>
+
+                  <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                    <p className="font-body text-blue-800 text-sm">
+                      <strong>AI Judge will evaluate:</strong> Content, Structure, Delivery, Time Discipline + Provide GSL reframe suggestions
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Country Atlas & Data */}
+              <Card className="card-world-class">
+                <CardHeader>
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
+                      <Target className="w-6 h-6 text-primary" />
+                    </div>
+                    <CardTitle className="font-heading text-xl">Country Atlas & Data</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {RESEARCH_LINKS.map((link, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-xl hover:bg-muted/50 transition-colors">
+                      <div>
+                        <h5 className="font-ui font-medium">{link.title}</h5>
+                        <p className="font-body text-xs text-muted-foreground">{link.description}</p>
+                      </div>
+                      <ExternalLink className="w-5 h-5 text-primary" />
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              {/* Research References */}
+              <Card className="card-world-class">
+                <CardHeader>
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
+                      <BookOpen className="w-6 h-6 text-primary" />
+                    </div>
+                    <CardTitle className="font-heading text-xl">Research References</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    <div className="p-3 bg-muted/30 rounded-xl">
+                      <h5 className="font-ui font-medium">UN Committees Explainer</h5>
+                    </div>
+                    <div className="p-3 bg-muted/30 rounded-xl">
+                      <h5 className="font-ui font-medium">Sample Position Papers</h5>
+                    </div>
+                    <div className="p-3 bg-muted/30 rounded-xl">
+                      <h5 className="font-ui font-medium">Past Resolutions Database</h5>
+                    </div>
+                    <div className="p-3 bg-muted/30 rounded-xl">
+                      <h5 className="font-ui font-medium">Model Working Papers</h5>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Committee Motions Strip */}
+            <div className="mb-16">
+              <h3 className="font-heading text-2xl font-bold mb-8 text-center">Committee Motions</h3>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {COMMITTEE_MOTIONS.map((committee, index) => (
+                  <Card key={index} className="card-world-class">
+                    <CardHeader>
+                      <CardTitle className="font-heading text-lg text-center">{committee.committee}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {committee.motions.map((motion, idx) => (
+                        <div key={idx} className="p-3 bg-muted/30 rounded-xl">
+                          <p className="font-body text-sm mb-2">{motion}</p>
+                          <Button size="sm" className="btn-indigo w-full">
+                            Practice Now
+                          </Button>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </div>
 
             {/* FAQ Section */}
@@ -254,152 +582,55 @@ const MyDebateWorld = () => {
           </section>
         )}
 
-        {/* Debate Practice Section */}
-        {activeSection === 'practice' && (
-          <section className="section-padding fade-in">
-            <div className="text-center mb-16">
-              <h2 className="font-heading text-5xl font-bold mb-6 text-foreground">
-                Practice Your Debate Skills
-              </h2>
-              <p className="font-body text-xl text-muted-foreground max-w-3xl mx-auto">
-                Train with AI Chanakya, the ancient strategist, to master persuasive debate and logical argumentation.
-              </p>
-            </div>
-
-            <div className="max-w-4xl mx-auto">
-              {currentStep === 'topic' && (
-                <Card className="card-world-class">
-                  <CardHeader className="text-center">
-                    <div className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                      <Target className="w-10 h-10 text-primary" />
-                    </div>
-                    <CardTitle className="font-heading text-3xl mb-4">Choose Your Debate Topic</CardTitle>
-                    <CardDescription className="font-body text-lg">
-                      Select from NCERT curriculum topics or trending GenZ debates
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-8">
-                    <div className="max-w-md mx-auto">
-                      <Select value={selectedTopic} onValueChange={setSelectedTopic}>
-                        <SelectTrigger className="h-14 font-ui text-lg">
-                          <SelectValue placeholder="Choose your debate topic" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {DEBATE_TOPICS.map((topic, index) => (
-                            <SelectItem key={index} value={topic} className="font-body py-3">
-                              {topic}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="text-center">
-                      <Button 
-                        onClick={() => setCurrentStep('recording')}
-                        disabled={!selectedTopic}
-                        className="btn-indigo min-w-[320px] h-16 text-lg"
-                      >
-                        <Brain className="w-6 h-6 mr-3" />
-                        Start Debate with Chanakya
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {currentStep === 'recording' && (
-                <Card className="card-world-class">
-                  <CardHeader className="text-center">
-                    <CardTitle className="font-heading text-2xl mb-4">Debate Topic</CardTitle>
-                    <div className="p-6 bg-primary/5 rounded-2xl border border-primary/20">
-                      <p className="font-body text-lg text-foreground">{selectedTopic}</p>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <VoiceRecorder 
-                      onRecordingComplete={handleRecordingComplete}
-                      placeholder="AI Chanakya will ask you questions. Press the mic to respond with your arguments."
-                      maxDuration={90}
-                    />
-                    <div className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-200">
-                      <p className="font-body text-blue-800">
-                        💡 <strong>Tip:</strong> Structure your argument with evidence, explain your reasoning clearly, and be ready for follow-up questions from Chanakya.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {currentStep === 'feedback' && showJudgePanel && (
-                <div className="fade-in">
-                  <JudgePanel type="debate" data={mockDebateJudgeData} />
-                  <div className="flex justify-center gap-6 mt-8">
-                    <Button 
-                      onClick={() => {
-                        setCurrentStep('topic');
-                        setShowJudgePanel(false);
-                        setSelectedTopic("");
-                      }}
-                      className="btn-indigo"
-                    >
-                      Practice Again
-                    </Button>
-                    <Button variant="outline" className="btn-outline-indigo">
-                      Go to Dashboard
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </section>
-        )}
-
-        {/* School Events Section */}
+        {/* Section C: School Events */}
         {activeSection === 'events' && (
           <section className="section-padding fade-in">
             <div className="text-center mb-16">
               <h2 className="font-heading text-5xl font-bold mb-6 text-foreground">
-                Indian School Events
+                Train for Your School Events
               </h2>
               <p className="font-body text-xl text-muted-foreground max-w-3xl mx-auto">
-                Prepare for real school competitions with AI-powered practice and feedback.
+                Prepare for real Indian school competitions with AI-powered practice and feedback.
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {SCHOOL_EVENTS.map((event, index) => (
                 <Card key={index} className="card-world-class hover-lift">
                   <CardHeader className="text-center">
-                    <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <event.icon className="w-8 h-8 text-primary" />
+                    <div className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                      <event.icon className="w-10 h-10 text-primary" />
                     </div>
-                    <CardTitle className="font-heading text-xl mb-2">{event.title}</CardTitle>
+                    <CardTitle className="font-heading text-xl mb-4">{event.title}</CardTitle>
                     <CardDescription className="font-body">{event.description}</CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-6">
                     <div>
-                      <h5 className="font-ui font-medium mb-3">Judging Criteria:</h5>
-                      <div className="flex flex-wrap gap-2">
+                      <h5 className="font-ui font-medium mb-4">Judging Criteria:</h5>
+                      <div className="grid grid-cols-2 gap-2">
                         {event.criteria.map((criterion, idx) => (
-                          <Badge key={idx} className="bg-primary/10 text-primary text-xs">
+                          <Badge key={idx} className="bg-primary/10 text-primary text-xs justify-center">
                             {criterion}
                           </Badge>
                         ))}
                       </div>
                     </div>
                     
-                    <div className="pt-4 border-t border-border">
-                      <div className="flex gap-3">
-                        <Button size="sm" className="btn-indigo flex-1">
-                          <Upload className="w-4 h-4 mr-2" />
-                          Upload
-                        </Button>
-                        <Button size="sm" variant="outline" className="btn-outline-indigo flex-1">
-                          <Mic className="w-4 h-4 mr-2" />
-                          Record
-                        </Button>
-                      </div>
+                    <div className="space-y-3">
+                      <Button className="btn-indigo w-full h-12">
+                        <Upload className="w-5 h-5 mr-2" />
+                        Upload File
+                      </Button>
+                      <Button variant="outline" className="btn-outline-indigo w-full h-12">
+                        <Mic className="w-5 h-5 mr-2" />
+                        Record Practice
+                      </Button>
+                    </div>
+
+                    <div className="bg-green-50 rounded-xl p-4 border border-green-200">
+                      <p className="font-body text-green-800 text-sm">
+                        <strong>AI Judge provides:</strong> Detailed feedback + score breakdown + improvement suggestions
+                      </p>
                     </div>
                   </CardContent>
                 </Card>
@@ -408,180 +639,267 @@ const MyDebateWorld = () => {
           </section>
         )}
 
-        {/* GenZ Topics Section */}
-        {activeSection === 'topics' && (
+        {/* Section D: Live Class & Weekly Events */}
+        {activeSection === 'live' && (
           <section className="section-padding fade-in">
             <div className="text-center mb-16">
               <h2 className="font-heading text-5xl font-bold mb-6 text-foreground">
-                GenZ Topics Library
+                Live Classes & Community Events
               </h2>
               <p className="font-body text-xl text-muted-foreground max-w-3xl mx-auto">
-                Modern debate topics that matter to your generation.
+                Join our live sessions and build lasting speaking habits with the community.
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {DEBATE_TOPICS.slice(8).map((topic, index) => (
-                <Card key={index} className="card-world-class hover-lift">
-                  <CardHeader>
-                    <div className="flex items-center justify-between mb-4">
-                      <Zap className="w-6 h-6 text-primary" />
-                      <Badge className="bg-primary/10 text-primary">Trending</Badge>
+            <div className="max-w-4xl mx-auto space-y-8">
+              {/* Weekly Class */}
+              <Card className="card-world-class border-2 border-primary/20">
+                <CardHeader className="text-center">
+                  <div className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <Users className="w-10 h-10 text-primary" />
+                  </div>
+                  <CardTitle className="font-heading text-3xl mb-4">Live Public Speaking Class</CardTitle>
+                  <CardDescription className="font-body text-lg">
+                    Every Saturday — Build confidence with expert guidance
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="text-center space-y-6">
+                  <div className="flex justify-center gap-8">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-5 h-5 text-primary" />
+                      <span className="font-ui font-medium">Weekly, Saturday</span>
                     </div>
-                    <CardTitle className="font-heading text-lg">{topic}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Button className="btn-indigo w-full">
-                      <Brain className="w-5 h-5 mr-2" />
-                      Practice Now
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-5 h-5 text-primary" />
+                      <span className="font-ui font-medium">5:00 PM IST</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-5 h-5 text-primary" />
+                      <span className="font-ui font-medium">Online (Zoom)</span>
+                    </div>
+                  </div>
+                  
+                  <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-800 px-4 py-2 rounded-full">
+                    <Zap className="w-4 h-4" />
+                    <span className="font-ui font-medium text-sm">Seats Limited</span>
+                  </div>
+
+                  <Button className="btn-indigo min-w-[280px] h-16 text-lg">
+                    <Users className="w-6 h-6 mr-3" />
+                    Book My Spot
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Community Events */}
+              <div>
+                <h3 className="font-heading text-2xl font-bold mb-8 text-center">Community Events</h3>
+                <div className="space-y-6">
+                  {UPCOMING_EVENTS.filter(event => event.type === 'event').map((event, index) => (
+                    <Card key={index} className="card-world-class">
+                      <CardContent className="flex items-center justify-between p-6">
+                        <div className="flex items-center gap-6">
+                          <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center">
+                            <Calendar className="w-8 h-8 text-primary" />
+                          </div>
+                          <div>
+                            <h4 className="font-heading text-xl font-bold mb-2">{event.title}</h4>
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <Calendar className="w-4 h-4" />
+                                {event.date}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-4 h-4" />
+                                {event.time}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <MapPin className="w-4 h-4" />
+                                {event.mode}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <Button className="btn-indigo">
+                          Register
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
             </div>
           </section>
         )}
 
-        {/* Leaderboards Section */}
+        {/* Section E: Leaderboards & Badges */}
         {activeSection === 'leaderboard' && (
           <section className="section-padding fade-in">
             <div className="text-center mb-16">
               <h2 className="font-heading text-5xl font-bold mb-6 text-foreground">
-                Leaderboards & Badges
+                Leaderboards & Achievements
               </h2>
               <p className="font-body text-xl text-muted-foreground max-w-3xl mx-auto">
-                Track your progress and compete with fellow debaters.
+                Track your progress and celebrate milestones with the community.
               </p>
             </div>
 
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-4xl mx-auto space-y-12">
+              {/* Weekly Leaderboards */}
               <Card className="card-world-class">
                 <CardHeader className="text-center">
-                  <CardTitle className="font-heading text-2xl mb-4 flex items-center justify-center">
-                    <Trophy className="w-8 h-8 mr-3 text-primary" />
-                    Weekly Leaderboard
-                  </CardTitle>
+                  <div className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <Trophy className="w-10 h-10 text-primary" />
+                  </div>
+                  <CardTitle className="font-heading text-2xl mb-4">Weekly Leaderboards</CardTitle>
+                  <CardDescription className="font-body">
+                    Top performers across different skills
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {LEADERBOARD_DATA.map((entry, index) => (
+                    {LEADERBOARD_DATA.map((leader, index) => (
                       <div key={index} className="flex items-center justify-between p-4 bg-muted/30 rounded-xl">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
                             <span className="font-ui font-bold text-primary">#{index + 1}</span>
                           </div>
                           <div>
-                            <p className="font-ui font-medium">{entry.user}</p>
-                            <Badge className="bg-primary/10 text-primary text-xs">{entry.badge}</Badge>
+                            <h5 className="font-ui font-medium">{leader.user}</h5>
+                            <p className="font-body text-sm text-muted-foreground">{leader.badge}</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-ui font-bold text-lg">{entry.score}</p>
-                          <p className="font-body text-sm text-muted-foreground">points</p>
+                          <span className="font-ui font-bold text-lg text-primary">{leader.score}</span>
+                          <p className="font-body text-xs text-muted-foreground">points</p>
                         </div>
                       </div>
                     ))}
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Badges */}
+              <Card className="card-world-class">
+                <CardHeader className="text-center">
+                  <div className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <Award className="w-10 h-10 text-primary" />
+                  </div>
+                  <CardTitle className="font-heading text-2xl mb-4">Achievement Badges</CardTitle>
+                  <CardDescription className="font-body">
+                    Unlock badges as you progress through your speaking journey
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-3 gap-6">
+                    <div className="text-center p-6 bg-green-50 rounded-2xl border border-green-200">
+                      <div className="text-4xl mb-3">🥉</div>
+                      <h5 className="font-ui font-medium text-green-800">Novice</h5>
+                      <p className="font-body text-sm text-green-600">Complete first debate</p>
+                    </div>
+                    <div className="text-center p-6 bg-blue-50 rounded-2xl border border-blue-200">
+                      <div className="text-4xl mb-3">🏆</div>
+                      <h5 className="font-ui font-medium text-blue-800">Chanakya Challenger</h5>
+                      <p className="font-body text-sm text-blue-600">Score 4+ in all criteria</p>
+                    </div>
+                    <div className="text-center p-6 bg-purple-50 rounded-2xl border border-purple-200">
+                      <div className="text-4xl mb-3">👑</div>
+                      <h5 className="font-ui font-medium text-purple-800">Ivy Ready</h5>
+                      <p className="font-body text-sm text-purple-600">Master advanced debates</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="text-center">
+                <Button className="btn-indigo">
+                  <Trophy className="w-5 h-5 mr-2" />
+                  Join a Weekend Event
+                </Button>
+              </div>
             </div>
           </section>
         )}
+      </div>
 
-        {/* Navigation Tabs */}
-        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
-          <Card className="card-world-class">
-            <CardContent className="p-4">
-              <div className="flex space-x-4">
-                <Button
-                  variant={activeSection === 'mun' ? 'default' : 'outline'}
-                  onClick={() => setActiveSection('mun')}
-                  className={activeSection === 'mun' ? 'btn-indigo' : 'btn-outline-indigo'}
-                >
-                  <BookOpen className="w-5 h-5 mr-2" />
-                  MUN 101
-                </Button>
-                <Button
-                  variant={activeSection === 'practice' ? 'default' : 'outline'}
-                  onClick={() => setActiveSection('practice')}
-                  className={activeSection === 'practice' ? 'btn-indigo' : 'btn-outline-indigo'}
-                >
-                  <Brain className="w-5 h-5 mr-2" />
-                  Practice
-                </Button>
-                <Button
-                  variant={activeSection === 'events' ? 'default' : 'outline'}
-                  onClick={() => setActiveSection('events')}
-                  className={activeSection === 'events' ? 'btn-indigo' : 'btn-outline-indigo'}
-                >
-                  <Trophy className="w-5 h-5 mr-2" />
-                  Events
-                </Button>
-                <Button
-                  variant={activeSection === 'topics' ? 'default' : 'outline'}
-                  onClick={() => setActiveSection('topics')}
-                  className={activeSection === 'topics' ? 'btn-indigo' : 'btn-outline-indigo'}
-                >
-                  <Zap className="w-5 h-5 mr-2" />
-                  Topics
-                </Button>
-                <Button
-                  variant={activeSection === 'leaderboard' ? 'default' : 'outline'}
-                  onClick={() => setActiveSection('leaderboard')}
-                  className={activeSection === 'leaderboard' ? 'btn-indigo' : 'btn-outline-indigo'}
-                >
-                  <Award className="w-5 h-5 mr-2" />
-                  Rankings
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+      {/* Navigation Pills */}
+      <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-white rounded-full shadow-lg border border-border p-2 z-50">
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setActiveSection('chanakya')}
+            size="sm"
+            className={activeSection === 'chanakya' ? 'btn-indigo' : 'btn-outline-indigo'}
+          >
+            Chanakya
+          </Button>
+          <Button
+            onClick={() => setActiveSection('mun')}
+            size="sm"
+            className={activeSection === 'mun' ? 'btn-indigo' : 'btn-outline-indigo'}
+          >
+            MUN
+          </Button>
+          <Button
+            onClick={() => setActiveSection('events')}
+            size="sm"
+            className={activeSection === 'events' ? 'btn-indigo' : 'btn-outline-indigo'}
+          >
+            Events
+          </Button>
+          <Button
+            onClick={() => setActiveSection('live')}
+            size="sm"
+            className={activeSection === 'live' ? 'btn-indigo' : 'btn-outline-indigo'}
+          >
+            Live
+          </Button>
+          <Button
+            onClick={() => setActiveSection('leaderboard')}
+            size="sm"
+            className={activeSection === 'leaderboard' ? 'btn-indigo' : 'btn-outline-indigo'}
+          >
+            Board
+          </Button>
         </div>
+      </div>
 
-        {/* Services Strip */}
-        <section className="section-padding bg-muted/30">
+      {/* Services Strip */}
+      <section className="bg-muted/30 section-padding">
+        <div className="section-content">
           <div className="text-center mb-12">
-            <h2 className="font-heading text-4xl font-bold mb-4 text-foreground">
-              1-on-1 Training
-            </h2>
-            <p className="font-body text-lg text-muted-foreground">
-              Get personalized coaching from expert trainers
-            </p>
+            <h3 className="font-heading text-3xl font-bold mb-4">1-on-1 Training</h3>
+            <p className="font-body text-lg text-muted-foreground">Get personalized coaching from expert trainers</p>
           </div>
-
+          
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             <Card className="card-world-class text-center">
-              <CardHeader>
-                <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <CardContent className="p-8">
+                <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
                   <Brain className="w-8 h-8 text-primary" />
                 </div>
-                <CardTitle className="font-heading text-xl">Debate Coaching</CardTitle>
-                <CardDescription className="font-body">
-                  Master speech structure, rebuttal techniques, and confident delivery
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button className="btn-indigo w-full">Book Now</Button>
+                <h4 className="font-heading text-xl font-bold mb-4">Debate Coaching</h4>
+                <p className="font-body text-muted-foreground mb-6">
+                  Personalized speech structure, rebuttal training, and delivery improvement
+                </p>
+                <Button className="btn-indigo">Book Now</Button>
               </CardContent>
             </Card>
-
+            
             <Card className="card-world-class text-center">
-              <CardHeader>
-                <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <CardContent className="p-8">
+                <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
                   <Users className="w-8 h-8 text-primary" />
                 </div>
-                <CardTitle className="font-heading text-xl">MUN Training</CardTitle>
-                <CardDescription className="font-body">
-                  Learn parliamentary procedure, resolution writing, and negotiation
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button className="btn-indigo w-full">Book Now</Button>
+                <h4 className="font-heading text-xl font-bold mb-4">Interview Coaching</h4>
+                <p className="font-body text-muted-foreground mb-6">
+                  HR + role-specific mock interviews with detailed recruiter panel feedback
+                </p>
+                <Button className="btn-indigo">Book Now</Button>
               </CardContent>
             </Card>
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
     </div>
   );
 };

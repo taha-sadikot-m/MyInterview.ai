@@ -28,7 +28,7 @@ const Navigation = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex-shrink-0">
-            <h1 className="font-logo text-2xl font-bold">Speak Your Mind</h1>
+            <h1 className="font-brand text-2xl font-bold">Speak Your Mind</h1>
           </Link>
 
           {/* Desktop Navigation */}
