@@ -37,13 +37,5 @@
         }
       ]
     }
-  ],
-  "env": {
-    "VITE_SUPABASE_URL": "@supabase_url",
-    "VITE_SUPABASE_ANON_KEY": "@supabase_anon_key",
-    "VITE_SUPABASE_SERVICE_ROLE_KEY": "@supabase_service_role_key",
-    "VITE_N8N_RESUME_PARSER_URL": "@n8n_resume_parser_url",
-    "VITE_N8N_MOCK_INTERVIEW_URL": "@n8n_mock_interview_url",
-    "VITE_N8N_PROCESS_RESPONSE_URL": "@n8n_process_response_url"
-  }
+  ]
 }
