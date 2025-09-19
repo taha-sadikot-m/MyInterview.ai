@@ -4,8 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VoiceRecorder } from "@/components/VoiceRecorder";
 import { JudgePanel } from "@/components/JudgePanel";
+import InterviewHistory from "@/components/InterviewHistory";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Briefcase, 
   Target, 
@@ -16,8 +21,21 @@ import {
   Calendar,
   Download,
   Save,
-  RotateCcw
+  RotateCcw,
+  Upload,
+  FileText,
+  History,
+  Loader2
 } from "lucide-react";
+import { 
+  uploadResume, 
+  triggerResumeParser, 
+  createJobDescription, 
+  startMockInterview, 
+  triggerMockInterview,
+  getActiveResume 
+} from "@/lib/interview-api";
+import { supabase } from "@/integrations/supabase/client";
 
 // Mock data
 const COMPANY_CATEGORIES = {
@@ -25,7 +43,8 @@ const COMPANY_CATEGORIES = {
   "Product & Tech": ["Zoho", "Amazon", "Microsoft", "Google", "Adobe"],
   "Core Engineering": ["L&T", "Bosch", "Hyundai", "Ford", "Ashok Leyland"],
   "Consulting & Finance": ["Deloitte", "KPMG", "EY", "PwC", "Goldman Sachs", "JP Morgan"],
-  "Startups & Unicorns": ["Flipkart", "Swiggy", "Zomato", "Freshworks"]
+  "Startups & Unicorns": ["Flipkart", "Swiggy", "Zomato", "Freshworks"],
+  "Other": ["Other"]
 };
 
 const JOB_ROLES = [
@@ -35,7 +54,8 @@ const JOB_ROLES = [
   "QA Engineer",
   "GET (Core branches)",
   "Consulting Analyst", 
-  "Business Analyst"
+  "Business Analyst",
+  "Custom"
 ];
 
 const SUGGESTED_TOPICS = {
@@ -84,11 +104,14 @@ const HOW_IT_WORKS = [
   }
 ];
 
-type Step = "setup" | "interview" | "feedback";
+type Step = "setup" | "interview" | "feedback" | "history";
 
 interface InterviewData {
   company: string;
+  customCompany?: string;
   role: string;
+  customJobDescription?: string;
+  resumeFile?: File;
   questions: string[];
   answers: string[];
   currentQuestion: number;
@@ -123,26 +146,321 @@ const MyInterviewWorld = () => {
   const [currentStep, setCurrentStep] = useState<Step>("setup");
   const [interviewData, setInterviewData] = useState<InterviewData>({
     company: "",
+    customCompany: "",
     role: "",
+    customJobDescription: "",
+    resumeFile: undefined,
     questions: [],
     answers: [],
     currentQuestion: 0
   });
   const [feedbackData, setFeedbackData] = useState<FeedbackData | null>(null);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [currentUserId] = useState("mock-user-id"); // Replace with actual user ID from auth
+  const [showQuestionPreview, setShowQuestionPreview] = useState(false);
+  const [generatedQuestions, setGeneratedQuestions] = useState<any>(null);
+  const [loadingQuestions, setLoadingQuestions] = useState(false);
+  const { toast } = useToast();
 
-  const handleStartInterview = () => {
+  // Debug function to test Supabase storage
+  const testSupabaseStorage = async () => {
+    console.log('=== SUPABASE STORAGE DIAGNOSTIC ===');
+    
+    try {
+      // Test 1: Check if supabase client is working
+      const { data: testAuth, error: authError } = await supabase.auth.getSession();
+      console.log('Auth test:', authError ? authError : 'OK');
+      
+      // Test 2: Try to list buckets
+      console.log('Testing bucket listing...');
+      const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+      console.log('List buckets result:', { data: buckets, error: listError });
+      
+      if (buckets && buckets.length > 0) {
+        console.log('Found buckets:');
+        buckets.forEach(bucket => {
+          console.log(`- ${bucket.name} (public: ${bucket.public}, id: ${bucket.id})`);
+        });
+      } else {
+        console.log('No buckets found!');
+      }
+      
+      // Test 3: Try different bucket names
+      console.log('Testing different bucket name variations...');
+      const testBuckets = ['resumes', 'Resumes', 'RESUMES', 'resume', 'Resume'];
+      
+      for (const bucketName of testBuckets) {
+        try {
+          const { data, error } = await supabase.storage.from(bucketName).list('', { limit: 1 });
+          console.log(`Bucket "${bucketName}":`, error ? `ERROR - ${error.message}` : 'EXISTS');
+        } catch (e: any) {
+          console.log(`Bucket "${bucketName}": ERROR -`, e.message);
+        }
+      }
+      
+      // Test 4: Try to create bucket
+      console.log('Attempting to create "resumes" bucket...');
+      try {
+        const { data, error } = await supabase.storage.createBucket('resumes', {
+          public: true,
+          allowedMimeTypes: ['application/pdf'],
+          fileSizeLimit: 10485760
+        });
+        console.log('Create bucket result:', { data, error });
+      } catch (e: any) {
+        console.error('Create bucket failed:', e);
+      }
+      
+      console.log('=== END DIAGNOSTIC ===');
+      console.log('Dashboard URL: https://app.supabase.com/project/sahcdkgvmvjzvvuzyilp/storage/buckets');
+      
+      toast({
+        title: "Storage Test Complete",
+        description: "Check browser console for detailed results",
+      });
+      
+    } catch (error: any) {
+      console.error('Storage test failed:', error);
+      toast({
+        title: "Storage Test Failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handlePreviewQuestions = async () => {
     if (!interviewData.company || !interviewData.role) {
+      toast({
+        title: "Missing Information",
+        description: "Please select both company and role to preview questions.",
+        variant: "destructive"
+      });
       return;
     }
 
-    setInterviewData(prev => ({
-      ...prev,
-      questions: SAMPLE_QUESTIONS,
-      answers: new Array(SAMPLE_QUESTIONS.length).fill(""),
-      currentQuestion: 0
-    }));
-    setCurrentStep("interview");
+    setLoadingQuestions(true);
+
+    try {
+      // For demo purposes, generate mock questions based on role and company
+      const mockQuestions = {
+        introduction: `Welcome to your ${interviewData.role} interview at ${interviewData.company === "Other" ? interviewData.customCompany : interviewData.company}. Let's begin!`,
+        question_sets: {
+          behavioral: [
+            {
+              id: 1,
+              question: "Tell me about yourself and why you're interested in this role.",
+              type: "behavioral",
+              competency: "communication"
+            },
+            {
+              id: 2,
+              question: "Describe a challenging project you worked on during your studies.",
+              type: "behavioral",
+              competency: "problem_solving"
+            }
+          ],
+          technical: [
+            {
+              id: 3,
+              question: interviewData.role === "Software Engineer" 
+                ? "Explain the difference between REST and GraphQL APIs."
+                : interviewData.role === "Data Analyst"
+                ? "How would you handle missing data in a dataset?"
+                : "What are your key technical skills for this role?",
+              type: "technical",
+              skill_area: interviewData.role.toLowerCase().replace(" ", "_")
+            }
+          ],
+          situational: [
+            {
+              id: 4,
+              question: "How would you handle a tight deadline on a project?",
+              type: "situational",
+              competency: "time_management"
+            }
+          ]
+        },
+        evaluation_criteria: {
+          technical_depth: "Understanding of core concepts",
+          communication: "Clarity and articulation",
+          problem_solving: "Approach to challenges",
+          cultural_fit: "Alignment with company values"
+        }
+      };
+
+      setGeneratedQuestions(mockQuestions);
+      setShowQuestionPreview(true);
+
+    } catch (error) {
+      console.error('Error generating question preview:', error);
+      toast({
+        title: "Preview Error",
+        description: "Unable to generate question preview. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingQuestions(false);
+    }
+  };
+
+  const handleStartInterview = async () => {
+    // Validation logic
+    if (!interviewData.company || !interviewData.role) {
+      toast({
+        title: "Missing Information",
+        description: "Please select both company and role to continue.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Check for custom company name if "Other" is selected
+    if (interviewData.company === "Other" && (!interviewData.customCompany || interviewData.customCompany.trim() === "")) {
+      toast({
+        title: "Company Name Required",
+        description: "Please enter a company name.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Check for custom job description if "Custom" role is selected
+    if (interviewData.role === "Custom" && (!interviewData.customJobDescription || interviewData.customJobDescription.trim() === "")) {
+      toast({
+        title: "Job Description Required",
+        description: "Please provide a job description for the custom role.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      let resumeId: string | undefined;
+      let jobDescriptionId: string | undefined;
+
+      // Handle resume upload if provided
+      if (interviewData.resumeFile) {
+        toast({
+          title: "Uploading Resume",
+          description: "Processing your resume..."
+        });
+
+        const { resume, error: uploadError } = await uploadResume(currentUserId, interviewData.resumeFile);
+        if (uploadError) {
+          throw new Error(`Resume upload failed: ${uploadError}`);
+        }
+
+        resumeId = resume.id;
+
+        // Trigger resume parsing
+        const { success: parseSuccess, error: parseError } = await triggerResumeParser(
+          resume.id, 
+          currentUserId
+        );
+        if (!parseSuccess) {
+          console.warn('Resume parsing failed:', parseError);
+          // Don't block the flow - just show a warning
+          toast({
+            title: "Resume Uploaded",
+            description: "Resume uploaded successfully. AI parsing will continue in the background.",
+            variant: "default"
+          });
+        } else {
+          toast({
+            title: "Resume Processing",
+            description: "Resume uploaded and parsing initiated successfully.",
+            variant: "default"
+          });
+        }
+      }
+
+      // Handle custom job description
+      if (interviewData.role === "Custom" && interviewData.customJobDescription) {
+        const companyName = interviewData.company === "Other" ? interviewData.customCompany! : interviewData.company;
+        
+        const { jobDescription, error: jobError } = await createJobDescription(
+          currentUserId,
+          companyName,
+          "Custom Role",
+          interviewData.customJobDescription
+        );
+
+        if (jobError) {
+          throw new Error(`Job description creation failed: ${jobError}`);
+        }
+
+        jobDescriptionId = jobDescription.id;
+      }
+
+      // Start interview session
+      const companyName = interviewData.company === "Other" ? interviewData.customCompany! : interviewData.company;
+      const roleTitle = interviewData.role === "Custom" ? "Custom Role" : interviewData.role;
+
+      const { interview, error: interviewError } = await startMockInterview({
+        userId: currentUserId,
+        resumeId,
+        jobDescriptionId,
+        companyName,
+        roleTitle,
+        interviewType: interviewData.role === "Custom" || interviewData.company === "Other" ? "custom" : "predefined",
+        totalQuestions: 6
+      });
+
+      if (interviewError) {
+        throw new Error(`Interview creation failed: ${interviewError}`);
+      }
+
+      // Trigger N8N interview workflow
+      const { success: workflowSuccess, error: workflowError } = await triggerMockInterview({
+        interviewId: interview.id,
+        userId: currentUserId,
+        resumeId,
+        jobDescriptionId,
+        companyName,
+        roleTitle,
+        preferences: {
+          totalQuestions: 6,
+          focusAreas: ["technical", "behavioral", "situational"],
+          difficultyLevel: "intermediate"
+        }
+      });
+
+      // Always continue with sample questions for demo - don't block on N8N
+      setInterviewData(prev => ({
+        ...prev,
+        questions: SAMPLE_QUESTIONS,
+        answers: new Array(SAMPLE_QUESTIONS.length).fill(""),
+        currentQuestion: 0
+      }));
+
+      if (!workflowSuccess) {
+        console.warn('N8N workflow failed, continuing with sample questions:', workflowError);
+      } else {
+        console.log('N8N workflow triggered successfully');
+      }
+
+      toast({
+        title: "Interview Started",
+        description: "Your mock interview has begun!",
+        variant: "default"
+      });
+
+      setCurrentStep("interview");
+
+    } catch (error) {
+      console.error('Error starting interview:', error);
+      toast({
+        title: "Error Starting Interview",
+        description: error instanceof Error ? error.message : "An unexpected error occurred.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleRecordingComplete = (audioBlob: Blob, transcript: string) => {
@@ -316,7 +634,35 @@ const MyInterviewWorld = () => {
         </div>
       </section>
 
+      {/* Navigation Tabs */}
+      <section className="border-b bg-background sticky top-0 z-40">
+        <div className="container mx-auto px-4">
+          <Tabs value={currentStep} onValueChange={(value) => setCurrentStep(value as Step)} className="w-full">
+            <TabsList className="grid w-full grid-cols-4 max-w-2xl mx-auto">
+              <TabsTrigger value="setup" className="flex items-center gap-2">
+                <Target className="w-4 h-4" />
+                Setup
+              </TabsTrigger>
+              <TabsTrigger value="interview" disabled={currentStep === "setup"} className="flex items-center gap-2">
+                <Briefcase className="w-4 h-4" />
+                Interview
+              </TabsTrigger>
+              <TabsTrigger value="feedback" disabled={!feedbackData} className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4" />
+                Results
+              </TabsTrigger>
+              <TabsTrigger value="history" className="flex items-center gap-2">
+                <History className="w-4 h-4" />
+                History
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+      </section>
+
       <div className="section-content">
+        <Tabs value={currentStep} onValueChange={(value) => setCurrentStep(value as Step)} className="w-full">
+          <TabsContent value="setup" className="mt-0">
         {/* How It Works Section */}
         <section className="section-padding">
           <div className="text-center mb-16">
@@ -386,6 +732,19 @@ const MyInterviewWorld = () => {
                         ))}
                       </SelectContent>
                     </Select>
+                    
+                    {/* Custom Company Input */}
+                    {interviewData.company === "Other" && (
+                      <div className="space-y-2">
+                        <label className="font-ui text-sm font-medium text-foreground">Company Name</label>
+                        <Input
+                          placeholder="Enter company name"
+                          value={interviewData.customCompany || ""}
+                          onChange={(e) => setInterviewData(prev => ({ ...prev, customCompany: e.target.value }))}
+                          className="h-12"
+                        />
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-4">
@@ -403,6 +762,105 @@ const MyInterviewWorld = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+
+                {/* Custom Job Description */}
+                {interviewData.role === "Custom" && (
+                  <div className="space-y-4">
+                    <label className="font-ui text-lg font-medium text-foreground">Job Description</label>
+                    <Textarea
+                      placeholder="Paste the job description here..."
+                      value={interviewData.customJobDescription || ""}
+                      onChange={(e) => setInterviewData(prev => ({ ...prev, customJobDescription: e.target.value }))}
+                      className="min-h-[120px] resize-none"
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Paste the complete job description to get personalized interview questions based on the role requirements.
+                    </p>
+                  </div>
+                )}
+
+                {/* Resume Upload */}
+                <div className="space-y-4">
+                  <label className="font-ui text-lg font-medium text-foreground">Upload Resume (Optional)</label>
+                  <div className="border-2 border-dashed border-primary/20 rounded-xl p-6 text-center hover:border-primary/40 transition-colors">
+                    <div className="space-y-4">
+                      <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
+                        <Upload className="w-8 h-8 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-ui text-lg font-medium text-foreground mb-2">Upload your resume (Max 3 pages)</p>
+                        <p className="font-body text-muted-foreground text-sm">
+                          Upload your resume (PDF only, max 3 pages) to get personalized questions based on your experience
+                        </p>
+                      </div>
+                      <Input
+                        type="file"
+                        accept=".pdf"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            // Validate file type
+                            if (file.type !== 'application/pdf') {
+                              toast({
+                                title: "Invalid File Type",
+                                description: "Please upload a PDF file only.",
+                                variant: "destructive"
+                              });
+                              e.target.value = ''; // Clear the input
+                              return;
+                            }
+                            
+                            // Validate file size (10MB limit)
+                            const maxSize = 10 * 1024 * 1024; // 10MB
+                            if (file.size > maxSize) {
+                              toast({
+                                title: "File Too Large",
+                                description: "Please upload a file smaller than 10MB.",
+                                variant: "destructive"
+                              });
+                              e.target.value = ''; // Clear the input
+                              return;
+                            }
+                            
+                            setInterviewData(prev => ({ ...prev, resumeFile: file }));
+                            toast({
+                              title: "Resume Selected",
+                              description: `${file.name} selected for upload. Page limit will be validated during processing.`,
+                            });
+                          }
+                        }}
+                        className="hidden"
+                        id="resume-upload"
+                      />
+                      <label htmlFor="resume-upload">
+                        <Button type="button" variant="outline" className="btn-outline cursor-pointer" asChild>
+                          <span>
+                            <FileText className="w-5 h-5 mr-2" />
+                            Choose PDF File
+                          </span>
+                        </Button>
+                      </label>
+                      {interviewData.resumeFile && (
+                        <div className="flex items-center justify-center gap-2 text-sm text-green-600">
+                          <CheckCircle className="w-4 h-4" />
+                          {interviewData.resumeFile.name}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Debug Storage Button - Remove in production */}
+                <div className="space-y-4">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={testSupabaseStorage}
+                    className="w-full border-yellow-500 text-yellow-700 hover:bg-yellow-50"
+                  >
+                    🐛 Debug Storage (Check Console)
+                  </Button>
                 </div>
 
                 <div className="p-6 bg-primary/5 rounded-2xl border border-primary/20">
@@ -427,14 +885,141 @@ const MyInterviewWorld = () => {
                   </div>
                 )}
 
+                {/* Question Preview Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="font-ui text-lg font-medium text-foreground">Question Preview</label>
+                    <Button
+                      onClick={handlePreviewQuestions}
+                      disabled={
+                        loadingQuestions ||
+                        !interviewData.company || 
+                        !interviewData.role ||
+                        (interviewData.company === "Other" && (!interviewData.customCompany || interviewData.customCompany.trim() === ""))
+                      }
+                      variant="outline"
+                      className="btn-outline"
+                    >
+                      {loadingQuestions ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Brain className="w-4 h-4 mr-2" />
+                          Preview Questions
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  
+                  {showQuestionPreview && generatedQuestions && (
+                    <Card className="border-2 border-primary/20 bg-primary/5">
+                      <CardHeader>
+                        <CardTitle className="font-heading text-xl text-primary flex items-center">
+                          <CheckCircle className="w-5 h-5 mr-2" />
+                          Interview Questions Preview
+                        </CardTitle>
+                        <CardDescription className="font-body">
+                          Here's what you can expect in your interview
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                          <p className="font-body text-blue-800">
+                            <strong>Welcome Message:</strong> {generatedQuestions.introduction}
+                          </p>
+                        </div>
+
+                        <div className="grid md:grid-cols-3 gap-4">
+                          <div className="space-y-3">
+                            <h4 className="font-ui font-semibold text-foreground">Behavioral Questions</h4>
+                            {generatedQuestions.question_sets.behavioral.map((q: any, index: number) => (
+                              <div key={q.id} className="p-3 bg-white rounded-lg border border-gray-200">
+                                <p className="font-body text-sm text-foreground">
+                                  <strong>Q{index + 1}:</strong> {q.question}
+                                </p>
+                                <Badge variant="outline" className="mt-2 text-xs">
+                                  {q.competency.replace('_', ' ')}
+                                </Badge>
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="space-y-3">
+                            <h4 className="font-ui font-semibold text-foreground">Technical Questions</h4>
+                            {generatedQuestions.question_sets.technical.map((q: any, index: number) => (
+                              <div key={q.id} className="p-3 bg-white rounded-lg border border-gray-200">
+                                <p className="font-body text-sm text-foreground">
+                                  <strong>Q{generatedQuestions.question_sets.behavioral.length + index + 1}:</strong> {q.question}
+                                </p>
+                                <Badge variant="outline" className="mt-2 text-xs">
+                                  Technical
+                                </Badge>
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="space-y-3">
+                            <h4 className="font-ui font-semibold text-foreground">Situational Questions</h4>
+                            {generatedQuestions.question_sets.situational.map((q: any, index: number) => (
+                              <div key={q.id} className="p-3 bg-white rounded-lg border border-gray-200">
+                                <p className="font-body text-sm text-foreground">
+                                  <strong>Q{generatedQuestions.question_sets.behavioral.length + generatedQuestions.question_sets.technical.length + index + 1}:</strong> {q.question}
+                                </p>
+                                <Badge variant="outline" className="mt-2 text-xs">
+                                  {q.competency.replace('_', ' ')}
+                                </Badge>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="p-4 bg-green-50 rounded-xl border border-green-200">
+                          <h4 className="font-ui font-semibold text-green-800 mb-2">Evaluation Criteria</h4>
+                          <div className="grid md:grid-cols-2 gap-2">
+                            {Object.entries(generatedQuestions.evaluation_criteria).map(([key, value]) => (
+                              <div key={key} className="text-sm text-green-700">
+                                <strong>{key.replace('_', ' ').toUpperCase()}:</strong> {value as string}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="text-center">
+                          <p className="font-body text-sm text-muted-foreground">
+                            💡 Questions may vary based on your responses and interview flow
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+
                 <div className="text-center">
                   <Button 
                     onClick={handleStartInterview}
-                    disabled={!interviewData.company || !interviewData.role}
+                    disabled={
+                      isProcessing ||
+                      !interviewData.company || 
+                      !interviewData.role ||
+                      (interviewData.company === "Other" && (!interviewData.customCompany || interviewData.customCompany.trim() === "")) ||
+                      (interviewData.role === "Custom" && (!interviewData.customJobDescription || interviewData.customJobDescription.trim() === ""))
+                    }
                     className="btn-indigo min-w-[320px] h-16 text-lg"
                   >
-                    <Briefcase className="w-6 h-6 mr-3" />
-                    Start Interview Practice
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="w-6 h-6 mr-3 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <Briefcase className="w-6 h-6 mr-3" />
+                        Start Interview Practice
+                      </>
+                    )}
                   </Button>
                 </div>
               </CardContent>
@@ -647,6 +1232,52 @@ const MyInterviewWorld = () => {
             </Card>
           </div>
         </section>
+        </TabsContent>
+
+        <TabsContent value="interview" className="mt-0">
+          {currentStep === "interview" && (
+            <section className="section-padding fade-in">
+              <div className="max-w-4xl mx-auto">
+                {/* This will contain the interview content when implemented */}
+                <Card className="card-world-class">
+                  <CardContent className="p-8 text-center">
+                    <h3 className="font-heading text-2xl font-bold mb-4">Interview In Progress</h3>
+                    <p className="text-muted-foreground">Interview functionality will be displayed here.</p>
+                  </CardContent>
+                </Card>
+              </div>
+            </section>
+          )}
+        </TabsContent>
+
+        <TabsContent value="feedback" className="mt-0">
+          {currentStep === "feedback" && feedbackData && (
+            <section className="section-padding fade-in">
+              <JudgePanel type="interview" data={feedbackData} />
+              <div className="flex justify-center gap-6 mt-12">
+                <Button onClick={() => setCurrentStep("setup")} className="btn-indigo">
+                  <RotateCcw className="w-5 h-5 mr-2" />
+                  Try Another Interview
+                </Button>
+                <Button variant="outline" className="btn-outline-indigo">
+                  <Save className="w-5 h-5 mr-2" />
+                  Save Attempt
+                </Button>
+                <Button variant="outline" className="btn-outline-indigo">
+                  <Download className="w-5 h-5 mr-2" />
+                  Download Report
+                </Button>
+              </div>
+            </section>
+          )}
+        </TabsContent>
+
+        <TabsContent value="history" className="mt-0">
+          <section className="section-padding">
+            <InterviewHistory userId={currentUserId} />
+          </section>
+        </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

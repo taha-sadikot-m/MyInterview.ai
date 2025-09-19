@@ -1,0 +1,424 @@
+{
+  "meta": {
+    "instanceId": "voice-vanguard-vault"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "mock-interview",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "POST, OPTIONS"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type"
+              }
+            ]
+          }
+        }
+      },
+      "id": "a1b2c3d4-e5f6-7890-1234-56789abcdefg",
+      "name": "Mock Interview Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://sahcdkgvmvjzvvuzyilp.supabase.co/rest/v1/mock_interviews",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhaGNka2d2bXZqenZ2dXp5aWxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0NTE0MDQsImV4cCI6MjA3MzAyNzQwNH0.qqnJLTmd5a0JKUhfW8fm5W9cuN_lK3czdvnszJxdrWA"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_SUPABASE_SERVICE_ROLE_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"user_id\": \"{{ $json.user_id }}\",\n  \"resume_id\": \"{{ $json.resume_id }}\",\n  \"job_description_id\": \"{{ $json.job_description_id }}\",\n  \"interview_type\": \"mock\",\n  \"status\": \"in_progress\",\n  \"started_at\": \"{{ new Date().toISOString() }}\"\n}"
+      },
+      "id": "b2c3d4e5-f6g7-8901-2345-6789abcdefgh",
+      "name": "Create Interview Record",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://sahcdkgvmvjzvvuzyilp.supabase.co/rest/v1/resumes?id=eq.{{ $('Mock Interview Webhook').first().json.resume_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhaGNka2d2bXZqenZ2dXp5aWxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0NTE0MDQsImV4cCI6MjA3MzAyNzQwNH0.qqnJLTmd5a0JKUhfW8fm5W9cuN_lK3czdvnszJxdrWA"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_SUPABASE_SERVICE_ROLE_KEY"
+            }
+          ]
+        }
+      },
+      "id": "c3d4e5f6-g7h8-9012-3456-789abcdefghi",
+      "name": "Get Resume Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        680,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://sahcdkgvmvjzvvuzyilp.supabase.co/rest/v1/job_descriptions?id=eq.{{ $('Mock Interview Webhook').first().json.job_description_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhaGNka2d2bXZqenZ2dXp5aWxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0NTE0MDQsImV4cCI6MjA3MzAyNzQwNH0.qqnJLTmd5a0JKUhfW8fm5W9cuN_lK3czdvnszJxdrWA"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_SUPABASE_SERVICE_ROLE_KEY"
+            }
+          ]
+        }
+      },
+      "id": "d4e5f6g7-h8i9-0123-4567-89abcdefghij",
+      "name": "Get Job Description",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        680,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const resumeData = JSON.parse($('Get Resume Data').first().json.body)[0];\nconst jobData = JSON.parse($('Get Job Description').first().json.body)[0];\nconst interviewData = JSON.parse($('Create Interview Record').first().json.body)[0];\n\n// Parse extracted resume data\nconst extractedData = typeof resumeData.extracted_data === 'string' \n  ? JSON.parse(resumeData.extracted_data) \n  : resumeData.extracted_data;\n\n// Parse job requirements\nconst jobRequirements = typeof jobData.requirements === 'string'\n  ? JSON.parse(jobData.requirements)\n  : jobData.requirements;\n\nreturn [{\n  json: {\n    interview_id: interviewData.id,\n    candidate: {\n      name: extractedData.personal_info?.name || 'Candidate',\n      experience: extractedData.experience || [],\n      skills: extractedData.skills || {},\n      education: extractedData.education || []\n    },\n    job: {\n      title: jobData.job_title,\n      company: jobData.company_name,\n      requirements: jobRequirements,\n      description: jobData.job_description\n    },\n    interview_type: 'behavioral_technical',\n    duration_minutes: 30\n  }\n}];"
+      },
+      "id": "e5f6g7h8-i9j0-1234-5678-9abcdefghijk",
+      "name": "Prepare Interview Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_OPENAI_API_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4-turbo\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are an experienced technical interviewer. Generate a comprehensive set of interview questions based on the candidate's resume and the job requirements. Create questions that test both technical skills and behavioral competencies.\\n\\nReturn a JSON object with the following structure:\\n{\\n  \\\"introduction\\\": \\\"A warm introduction message\\\",\\n  \\\"question_sets\\\": {\\n    \\\"behavioral\\\": [\\n      {\\n        \\\"id\\\": 1,\\n        \\\"question\\\": \\\"Tell me about a challenging project you worked on\\\",\\n        \\\"type\\\": \\\"behavioral\\\",\\n        \\\"competency\\\": \\\"problem_solving\\\",\\n        \\\"follow_up\\\": [\\\"What was your specific role?\\\", \\\"How did you overcome obstacles?\\\"]\\n      }\\n    ],\\n    \\\"technical\\\": [\\n      {\\n        \\\"id\\\": 2,\\n        \\\"question\\\": \\\"Explain the concept of REST APIs\\\",\\n        \\\"type\\\": \\\"technical\\\",\\n        \\\"skill_area\\\": \\\"backend_development\\\",\\n        \\\"difficulty\\\": \\\"intermediate\\\"\\n      }\\n    ],\\n    \\\"situational\\\": [\\n      {\\n        \\\"id\\\": 3,\\n        \\\"question\\\": \\\"How would you handle a tight deadline?\\\",\\n        \\\"type\\\": \\\"situational\\\",\\n        \\\"competency\\\": \\\"time_management\\\"\\n      }\\n    ]\\n  },\\n  \\\"evaluation_criteria\\\": {\\n    \\\"technical_depth\\\": \\\"Assess understanding of core concepts\\\",\\n    \\\"communication\\\": \\\"Clarity and articulation of ideas\\\",\\n    \\\"problem_solving\\\": \\\"Approach to complex challenges\\\",\\n    \\\"cultural_fit\\\": \\\"Alignment with company values\\\"\\n  }\\n}\\n\\nEnsure questions are relevant to both the candidate's background and job requirements.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Generate interview questions for this scenario:\\n\\nCandidate Profile: {{ JSON.stringify($json.candidate) }}\\n\\nJob Details: {{ JSON.stringify($json.job) }}\\n\\nInterview Type: {{ $json.interview_type }}\\nDuration: {{ $json.duration_minutes }} minutes\"\n    }\n  ]\n}"
+      },
+      "id": "f6g7h8i9-j0k1-2345-6789-abcdefghijkl",
+      "name": "Generate Questions",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n  const responseBody = JSON.parse($input.first().json.body);\n  const generatedQuestions = JSON.parse(responseBody.choices[0].message.content);\n  const interviewId = $('Prepare Interview Context').first().json.interview_id;\n  \n  // Validate question structure\n  if (!generatedQuestions.question_sets || !generatedQuestions.introduction) {\n    throw new Error('Invalid question format generated');\n  }\n  \n  // Create a flattened question list for easy access\n  const allQuestions = [];\n  let questionIndex = 0;\n  \n  ['behavioral', 'technical', 'situational'].forEach(category => {\n    if (generatedQuestions.question_sets[category]) {\n      generatedQuestions.question_sets[category].forEach(q => {\n        allQuestions.push({\n          ...q,\n          index: questionIndex++,\n          category: category\n        });\n      });\n    }\n  });\n  \n  return [{\n    json: {\n      success: true,\n      interview_id: interviewId,\n      questions: generatedQuestions,\n      question_list: allQuestions,\n      total_questions: allQuestions.length,\n      estimated_duration: Math.ceil(allQuestions.length * 3) // 3 minutes per question\n    }\n  }];\n  \n} catch (error) {\n  return [{\n    json: {\n      success: false,\n      interview_id: $('Prepare Interview Context').first().json.interview_id,\n      error: error.message\n    }\n  }];\n}"
+      },
+      "id": "g7h8i9j0-k1l2-3456-789a-bcdefghijklm",
+      "name": "Process Questions",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1340,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://sahcdkgvmvjzvvuzyilp.supabase.co/rest/v1/mock_interviews?id=eq.{{ $json.interview_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhaGNka2d2bXZqenZ2dXp5aWxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0NTE0MDQsImV4cCI6MjA3MzAyNzQwNH0.qqnJLTmd5a0JKUhfW8fm5W9cuN_lK3czdvnszJxdrWA"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_SUPABASE_SERVICE_ROLE_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"questions\": {{ JSON.stringify($json.questions) }},\n  \"status\": \"ready\",\n  \"total_questions\": {{ $json.total_questions }},\n  \"estimated_duration\": {{ $json.estimated_duration }},\n  \"updated_at\": \"{{ new Date().toISOString() }}\"\n}"
+      },
+      "id": "h8i9j0k1-l2m3-4567-89ab-cdefghijklmn",
+      "name": "Update Interview Success",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1560,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://sahcdkgvmvjzvvuzyilp.supabase.co/rest/v1/mock_interviews?id=eq.{{ $json.interview_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhaGNka2d2bXZqenZ2dXp5aWxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0NTE0MDQsImV4cCI6MjA3MzAyNzQwNH0.qqnJLTmd5a0JKUhfW8fm5W9cuN_lK3czdvnszJxdrWA"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_SUPABASE_SERVICE_ROLE_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"status\": \"failed\",\n  \"error_message\": \"{{ $json.error }}\",\n  \"updated_at\": \"{{ new Date().toISOString() }}\"\n}"
+      },
+      "id": "i9j0k1l2-m3n4-5678-9abc-defghijklmno",
+      "name": "Update Interview Error",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1560,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": {{ $json.success }},\n  \"interview_id\": \"{{ $json.interview_id }}\",\n  \"message\": \"{{ $json.success ? 'Interview questions generated successfully' : 'Failed to generate questions' }}\",\n  \"questions_preview\": {{ $json.success ? JSON.stringify($json.question_list.slice(0, 3)) : '[]' }},\n  \"total_questions\": {{ $json.total_questions || 0 }},\n  \"estimated_duration\": {{ $json.estimated_duration || 0 }}\n}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "POST, OPTIONS"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type"
+              }
+            ]
+          }
+        }
+      },
+      "id": "j0k1l2m3-n4o5-6789-abcd-efghijklmnop",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1780,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Mock Interview Webhook": {
+      "main": [
+        [
+          {
+            "node": "Create Interview Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Interview Record": {
+      "main": [
+        [
+          {
+            "node": "Get Resume Data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Job Description",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Resume Data": {
+      "main": [
+        [
+          {
+            "node": "Prepare Interview Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Job Description": {
+      "main": [
+        [
+          {
+            "node": "Prepare Interview Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Interview Context": {
+      "main": [
+        [
+          {
+            "node": "Generate Questions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Questions": {
+      "main": [
+        [
+          {
+            "node": "Process Questions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Questions": {
+      "main": [
+        [
+          {
+            "node": "Update Interview Success",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Update Interview Error",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Interview Success": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Interview Error": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2025-09-18T10:00:00.000Z",
+  "id": "mock-interview-workflow",
+  "name": "Mock Interview Generator",
+  "active": true,
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2025-09-18T10:00:00.000Z",
+      "updatedAt": "2025-09-18T10:00:00.000Z",
+      "id": "interview-workflows",
+      "name": "Interview Workflows"
+    }
+  ],
+  "updatedAt": "2025-09-18T10:00:00.000Z",
+  "versionId": "1",
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

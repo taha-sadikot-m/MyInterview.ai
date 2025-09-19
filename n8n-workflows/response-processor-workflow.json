@@ -1,0 +1,381 @@
+{
+  "meta": {
+    "instanceId": "voice-vanguard-vault"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "process-response",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "POST, OPTIONS"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type"
+              }
+            ]
+          }
+        }
+      },
+      "id": "z1a2b3c4-d5e6-f7g8-h9i0-j1k2l3m4n5o6",
+      "name": "Response Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://sahcdkgvmvjzvvuzyilp.supabase.co/rest/v1/mock_interviews?id=eq.{{ $json.interview_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhaGNka2d2bXZqenZ2dXp5aWxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0NTE0MDQsImV4cCI6MjA3MzAyNzQwNH0.qqnJLTmd5a0JKUhfW8fm5W9cuN_lK3czdvnszJxdrWA"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_SUPABASE_SERVICE_ROLE_KEY"
+            }
+          ]
+        }
+      },
+      "id": "a2b3c4d5-e6f7-g8h9-i0j1-k2l3m4n5o6p7",
+      "name": "Get Interview Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const webhookData = $('Response Webhook').first().json;\nconst interviewData = JSON.parse($('Get Interview Data').first().json.body)[0];\n\n// Validate required fields\nif (!webhookData.question_id || !webhookData.response_text) {\n  throw new Error('Missing required fields: question_id or response_text');\n}\n\n// Parse questions from interview data\nconst questions = typeof interviewData.questions === 'string' \n  ? JSON.parse(interviewData.questions) \n  : interviewData.questions;\n\n// Find the specific question\nlet currentQuestion = null;\nfor (const [category, categoryQuestions] of Object.entries(questions.question_sets)) {\n  const found = categoryQuestions.find(q => q.id === webhookData.question_id);\n  if (found) {\n    currentQuestion = { ...found, category };\n    break;\n  }\n}\n\nif (!currentQuestion) {\n  throw new Error(`Question with ID ${webhookData.question_id} not found`);\n}\n\nreturn [{\n  json: {\n    interview_id: webhookData.interview_id,\n    question_id: webhookData.question_id,\n    response_text: webhookData.response_text,\n    current_question: currentQuestion,\n    interview_type: interviewData.interview_type,\n    evaluation_criteria: questions.evaluation_criteria,\n    is_final_question: webhookData.is_final_question || false,\n    timestamp: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "b3c4d5e6-f7g8-h9i0-j1k2-l3m4n5o6p7q8",
+      "name": "Prepare Response Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_OPENAI_API_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4-turbo\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are an expert interviewer and career coach. Analyze the candidate's response to the interview question and provide comprehensive feedback.\\n\\nReturn a JSON object with this structure:\\n{\\n  \\\"score\\\": 8,\\n  \\\"feedback\\\": {\\n    \\\"strengths\\\": [\\\"Clear communication\\\", \\\"Relevant examples\\\"],\\n    \\\"areas_for_improvement\\\": [\\\"Could provide more specific metrics\\\"],\\n    \\\"suggestions\\\": [\\\"Consider using the STAR method\\\"],\\n    \\\"overall_comment\\\": \\\"Strong response with good structure\\\"\\n  },\\n  \\\"competency_scores\\\": {\\n    \\\"technical_knowledge\\\": 7,\\n    \\\"communication\\\": 9,\\n    \\\"problem_solving\\\": 8,\\n    \\\"leadership\\\": 6\\n  },\\n  \\\"follow_up_questions\\\": [\\n    \\\"Can you elaborate on the technical challenges?\\\",\\n    \\\"How did you measure success?\\\"\\n  ],\\n  \\\"interviewer_notes\\\": \\\"Candidate shows strong potential. Good cultural fit.\\\",\\n  \\\"recommendation\\\": \\\"proceed\\\"\\n}\\n\\nScore from 1-10. Recommendation can be: 'proceed', 'maybe', 'decline'.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Analyze this interview response:\\n\\nQuestion: {{ JSON.stringify($json.current_question) }}\\n\\nCandidate Response: {{ $json.response_text }}\\n\\nInterview Type: {{ $json.interview_type }}\\n\\nEvaluation Criteria: {{ JSON.stringify($json.evaluation_criteria) }}\"\n    }\n  ]\n}"
+      },
+      "id": "c4d5e6f7-g8h9-i0j1-k2l3-m4n5o6p7q8r9",
+      "name": "Analyze Response",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n  const responseBody = JSON.parse($input.first().json.body);\n  const analysis = JSON.parse(responseBody.choices[0].message.content);\n  const preparedData = $('Prepare Response Data').first().json;\n  \n  // Validate analysis structure\n  if (!analysis.score || !analysis.feedback) {\n    throw new Error('Invalid analysis format');\n  }\n  \n  // Prepare response record for database\n  const responseRecord = {\n    interview_id: preparedData.interview_id,\n    question_id: preparedData.question_id,\n    response_text: preparedData.response_text,\n    score: analysis.score,\n    feedback: analysis.feedback,\n    competency_scores: analysis.competency_scores || {},\n    interviewer_notes: analysis.interviewer_notes || '',\n    timestamp: preparedData.timestamp\n  };\n  \n  return [{\n    json: {\n      success: true,\n      response_record: responseRecord,\n      analysis: analysis,\n      is_final_question: preparedData.is_final_question,\n      interview_id: preparedData.interview_id\n    }\n  }];\n  \n} catch (error) {\n  return [{\n    json: {\n      success: false,\n      error: error.message,\n      interview_id: $('Prepare Response Data').first().json.interview_id\n    }\n  }];\n}"
+      },
+      "id": "d5e6f7g8-h9i0-j1k2-l3m4-n5o6p7q8r9s0",
+      "name": "Process Analysis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://sahcdkgvmvjzvvuzyilp.supabase.co/rest/v1/interview_responses",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhaGNka2d2bXZqenZ2dXp5aWxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0NTE0MDQsImV4cCI6MjA3MzAyNzQwNH0.qqnJLTmd5a0JKUhfW8fm5W9cuN_lK3czdvnszJxdrWA"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_SUPABASE_SERVICE_ROLE_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.response_record) }}"
+      },
+      "id": "e6f7g8h9-i0j1-k2l3-m4n5-o6p7q8r9s0t1",
+      "name": "Save Response",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1340,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://sahcdkgvmvjzvvuzyilp.supabase.co/rest/v1/mock_interviews?id=eq.{{ $json.interview_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhaGNka2d2bXZqenZ2dXp5aWxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0NTE0MDQsImV4cCI6MjA3MzAyNzQwNH0.qqnJLTmd5a0JKUhfW8fm5W9cuN_lK3czdvnszJxdrWA"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_SUPABASE_SERVICE_ROLE_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"status\": \"{{ $json.is_final_question ? 'completed' : 'in_progress' }}\",\n  \"{{ $json.is_final_question ? 'completed_at' : 'updated_at' }}\": \"{{ new Date().toISOString() }}\"\n}"
+      },
+      "id": "f7g8h9i0-j1k2-l3m4-n5o6-p7q8r9s0t1u2",
+      "name": "Update Interview Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1340,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate interview summary if this is the final question\nif ($json.is_final_question) {\n  // This would typically fetch all responses for the interview\n  // and generate a comprehensive summary\n  return [{\n    json: {\n      ...$json,\n      summary_required: true,\n      final_score: $json.analysis.score,\n      recommendation: $json.analysis.recommendation\n    }\n  }];\n} else {\n  return [{\n    json: {\n      ...$json,\n      summary_required: false\n    }\n  }];\n}"
+      },
+      "id": "g8h9i0j1-k2l3-m4n5-o6p7-q8r9s0t1u2v3",
+      "name": "Check Summary Need",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1560,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": {{ $json.success }},\n  \"message\": \"{{ $json.success ? 'Response analyzed successfully' : 'Failed to analyze response' }}\",\n  \"analysis\": {{ $json.success ? JSON.stringify($json.analysis) : 'null' }},\n  \"score\": {{ $json.analysis?.score || 0 }},\n  \"is_final\": {{ $json.is_final_question || false }},\n  \"next_action\": \"{{ $json.is_final_question ? 'complete_interview' : 'continue_interview' }}\"\n}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "POST, OPTIONS"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type"
+              }
+            ]
+          }
+        }
+      },
+      "id": "h9i0j1k2-l3m4-n5o6-p7q8-r9s0t1u2v3w4",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1780,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"message\": \"{{ $json.error }}\",\n  \"error\": \"{{ $json.error }}\"\n}",
+        "options": {
+          "responseCode": 500,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "i0j1k2l3-m4n5-o6p7-q8r9-s0t1u2v3w4x5",
+      "name": "Error Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1780,
+        500
+      ]
+    }
+  ],
+  "connections": {
+    "Response Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get Interview Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Interview Data": {
+      "main": [
+        [
+          {
+            "node": "Prepare Response Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Response Data": {
+      "main": [
+        [
+          {
+            "node": "Analyze Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Response": {
+      "main": [
+        [
+          {
+            "node": "Process Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Analysis": {
+      "main": [
+        [
+          {
+            "node": "Save Response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Update Interview Status",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Response": {
+      "main": [
+        [
+          {
+            "node": "Check Summary Need",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Interview Status": {
+      "main": [
+        [
+          {
+            "node": "Check Summary Need",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Summary Need": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2025-09-18T10:00:00.000Z",
+  "id": "response-processor-workflow",
+  "name": "Interview Response Processor",
+  "active": true,
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2025-09-18T10:00:00.000Z",
+      "updatedAt": "2025-09-18T10:00:00.000Z",
+      "id": "interview-workflows",
+      "name": "Interview Workflows"
+    }
+  ],
+  "updatedAt": "2025-09-18T10:00:00.000Z",
+  "versionId": "1",
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,374 @@
+{
+  "meta": {
+    "instanceId": "voice-vanguard-vault"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "parse-resume",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "POST, OPTIONS"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type"
+              }
+            ]
+          }
+        }
+      },
+      "id": "1e8b7c45-d2a3-4f56-9012-3456789abcde",
+      "name": "Resume Parser Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://sahcdkgvmvjzvvuzyilp.supabase.co/rest/v1/resumes?id=eq.{{ $json.resume_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhaGNka2d2bXZqenZ2dXp5aWxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0NTE0MDQsImV4cCI6MjA3MzAyNzQwNH0.qqnJLTmd5a0JKUhfW8fm5W9cuN_lK3czdvnszJxdrWA"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_SUPABASE_SERVICE_ROLE_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"parsing_status\": \"processing\",\n  \"updated_at\": \"{{ new Date().toISOString() }}\"\n}"
+      },
+      "id": "2f9c8d56-e3b4-5g67-a123-456789bcdefg",
+      "name": "Update Resume Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Resume Parser Webhook').first().json.file_url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "3a0d9e67-f4c5-6h78-b234-56789cdefghi",
+      "name": "Download PDF",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const pdf = require('pdf-parse');\n\nconst pdfBuffer = $input.first().binary.data;\nconst data = await pdf(pdfBuffer);\n\nreturn [\n  {\n    json: {\n      text_content: data.text,\n      page_count: data.numpages,\n      resume_id: $('Resume Parser Webhook').first().json.resume_id,\n      user_id: $('Resume Parser Webhook').first().json.user_id\n    }\n  }\n];"
+      },
+      "id": "4b1e0f78-g5d6-7i89-c345-6789defghijk",
+      "name": "Extract PDF Text",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_OPENAI_API_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4-turbo\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are a resume parsing AI. Extract structured information from the resume text and return a JSON object with the following fields:\\n\\n- personal_info: {name, email, phone, location, linkedin, portfolio}\\n- education: [{degree, institution, year, gpa, relevant_courses}]\\n- experience: [{title, company, duration, responsibilities, achievements}]\\n- skills: {technical_skills, soft_skills, tools_and_technologies}\\n- projects: [{name, description, technologies, duration, achievements}]\\n- certifications: [{name, issuer, date, validity}]\\n- achievements: [string array]\\n- languages: [{language, proficiency}]\\n\\nOnly return valid JSON. If any section is not found, use empty arrays or null values.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Please parse this resume text and extract structured information: {{ $json.text_content }}\"\n    }\n  ]\n}"
+      },
+      "id": "5c2f1g89-h6e7-8j90-d456-789efghijklm",
+      "name": "AI Resume Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n  const responseBody = JSON.parse($input.first().json.body);\n  const extractedData = JSON.parse(responseBody.choices[0].message.content);\n  \n  // Validate required fields\n  const requiredFields = ['personal_info', 'education', 'experience', 'skills'];\n  const isValid = requiredFields.every(field => extractedData.hasOwnProperty(field));\n  \n  if (!isValid) {\n    throw new Error('Missing required fields in extracted data');\n  }\n  \n  // Clean and normalize data\n  const cleanedData = {\n    ...extractedData,\n    extracted_at: new Date().toISOString(),\n    parsing_method: 'ai_gpt4'\n  };\n  \n  return [{\n    json: {\n      success: true,\n      extracted_data: cleanedData,\n      resume_id: $('Extract PDF Text').first().json.resume_id\n    }\n  }];\n  \n} catch (error) {\n  return [{\n    json: {\n      success: false,\n      error: error.message,\n      resume_id: $('Extract PDF Text').first().json.resume_id\n    }\n  }];\n}"
+      },
+      "id": "6d3g2h90-i7f8-9k01-e567-89fghijklmno",
+      "name": "Validate Extracted Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1340,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://sahcdkgvmvjzvvuzyilp.supabase.co/rest/v1/resumes?id=eq.{{ $json.resume_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhaGNka2d2bXZqenZ2dXp5aWxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0NTE0MDQsImV4cCI6MjA3MzAyNzQwNH0.qqnJLTmd5a0JKUhfW8fm5W9cuN_lK3czdvnszJxdrWA"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_SUPABASE_SERVICE_ROLE_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"extracted_data\": {{ JSON.stringify($json.extracted_data) }},\n  \"parsing_status\": \"completed\",\n  \"updated_at\": \"{{ new Date().toISOString() }}\"\n}"
+      },
+      "id": "7e4h3i01-j8g9-0l12-f678-90ghijklmnop",
+      "name": "Update Resume Success",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1560,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://sahcdkgvmvjzvvuzyilp.supabase.co/rest/v1/resumes?id=eq.{{ $json.resume_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhaGNka2d2bXZqenZ2dXp5aWxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0NTE0MDQsImV4cCI6MjA3MzAyNzQwNH0.qqnJLTmd5a0JKUhfW8fm5W9cuN_lK3czdvnszJxdrWA"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_SUPABASE_SERVICE_ROLE_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"parsing_status\": \"failed\",\n  \"parsing_error\": \"{{ $json.error }}\",\n  \"updated_at\": \"{{ new Date().toISOString() }}\"\n}"
+      },
+      "id": "8f5i4j12-k9h0-1m23-g789-01hijklmnopq",
+      "name": "Update Resume Error",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1560,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": {{ $json.success }},\n  \"resume_id\": \"{{ $json.resume_id }}\",\n  \"message\": \"{{ $json.success ? 'Resume parsed successfully' : 'Resume parsing failed' }}\"\n}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "POST, OPTIONS"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type"
+              }
+            ]
+          }
+        }
+      },
+      "id": "9g6j5k23-l0i1-2n34-h890-12ijklmnopqr",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1780,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Resume Parser Webhook": {
+      "main": [
+        [
+          {
+            "node": "Update Resume Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Resume Status": {
+      "main": [
+        [
+          {
+            "node": "Download PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download PDF": {
+      "main": [
+        [
+          {
+            "node": "Extract PDF Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract PDF Text": {
+      "main": [
+        [
+          {
+            "node": "AI Resume Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Resume Analysis": {
+      "main": [
+        [
+          {
+            "node": "Validate Extracted Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Extracted Data": {
+      "main": [
+        [
+          {
+            "node": "Update Resume Success",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Update Resume Error",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Resume Success": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Resume Error": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2025-09-18T10:00:00.000Z",
+  "id": "resume-parser-workflow",
+  "name": "Resume Parser Workflow",
+  "active": true,
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2025-09-18T10:00:00.000Z",
+      "updatedAt": "2025-09-18T10:00:00.000Z",
+      "id": "interview-workflows",
+      "name": "Interview Workflows"
+    }
+  ],
+  "updatedAt": "2025-09-18T10:00:00.000Z",
+  "versionId": "1",
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
