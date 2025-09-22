@@ -1384,7 +1384,7 @@ const MyInterviewWorld = () => {
             
             {/* Modern headline with gradient */}
             <h1 className="font-heading text-6xl md:text-8xl lg:text-9xl font-black bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent leading-tight mb-6">
-              MyInterview.ai
+              MyInterview AI
             </h1>
             
             {/* Modern tagline */}
