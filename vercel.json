@@ -1,9 +1,7 @@
 {
-  "version": 2,
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "installCommand": "npm install",
-  "framework": "vite",
   "rewrites": [
     {
       "source": "/((?!api/.*).*)",
@@ -38,8 +36,4 @@
       ]
     }
   ]
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 7d06ca40b17a4f0d8ee48232d8de388c61bb761d
