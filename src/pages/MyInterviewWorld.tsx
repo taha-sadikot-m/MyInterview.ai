@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -10,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VoiceRecorder } from "@/components/VoiceRecorder";
 import { JudgePanel } from "@/components/JudgePanel";
 import InterviewHistory from "@/components/InterviewHistory";
+import EvaluationResults from "@/components/EvaluationResults";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Briefcase, 
@@ -33,7 +35,9 @@ import {
   createJobDescription, 
   startMockInterview, 
   triggerMockInterview,
-  getActiveResume 
+  getActiveResume,
+  fetchInterviewQuestions,
+  triggerInterviewEvaluation
 } from "@/lib/interview-api";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -77,6 +81,80 @@ const SAMPLE_QUESTIONS = [
   "Where do you see yourself in 5 years?"
 ];
 
+// Enhanced sample questions with follow-ups for testing
+const SAMPLE_QUESTIONS_WITH_FOLLOWUPS = [
+  {
+    id: "q1",
+    question: "Tell me about yourself and why you're interested in this role.",
+    type: "behavioral",
+    category: "introduction",
+    competency: "communication",
+    skill_area: "general",
+    difficulty: "easy",
+    follow_up: [
+      "What specific aspect of this role excites you the most?",
+      "How does this position align with your career goals?"
+    ]
+  },
+  {
+    id: "q2", 
+    question: "Describe a challenging project you worked on during college.",
+    type: "behavioral",
+    category: "experience",
+    competency: "problem_solving",
+    skill_area: "general", 
+    difficulty: "intermediate",
+    follow_up: [
+      "What was your specific role in this project?",
+      "How did you overcome the main obstacles you faced?",
+      "What would you do differently if you could redo this project?"
+    ]
+  },
+  {
+    id: "q3",
+    question: "How do you handle pressure and tight deadlines?",
+    type: "behavioral",
+    category: "work_style",
+    competency: "stress_management",
+    skill_area: "general",
+    difficulty: "intermediate",
+    follow_up: [
+      "Can you give me a specific example from your experience?",
+      "What strategies do you use to prioritize tasks under pressure?"
+    ]
+  },
+  {
+    id: "q4",
+    question: "What are your biggest strengths and how do they apply to this position?",
+    type: "behavioral", 
+    category: "self_assessment",
+    competency: "self_awareness",
+    skill_area: "general",
+    difficulty: "easy",
+    follow_up: []
+  },
+  {
+    id: "q5",
+    question: "Why do you want to work at this company specifically?",
+    type: "behavioral",
+    category: "motivation",
+    competency: "company_knowledge", 
+    skill_area: "general",
+    difficulty: "easy",
+    follow_up: []
+  },
+  {
+    id: "q6",
+    question: "Where do you see yourself in 5 years?",
+    type: "behavioral",
+    category: "career_planning",
+    competency: "goal_setting",
+    skill_area: "general", 
+    difficulty: "easy",
+    follow_up: []
+  }
+];
+
 const HOW_IT_WORKS = [
   {
     number: "1",
@@ -106,15 +184,41 @@ const HOW_IT_WORKS = [
 
 type Step = "setup" | "interview" | "feedback" | "history";
 
+interface QuestionData {
+  id: string; // Changed to string for compatibility
+  question: string;
+  type: string;
+  category: string;
+  competency?: string;
+  skill_area?: string;
+  difficulty?: string;
+  follow_up?: string[];
+}
+
+interface QuestionResponse {
+  questionId: string;
+  question: string;
+  answer: string;
+  followUpResponses: Array<{
+    question: string;
+    answer: string;
+  }>;
+  timestamp: string;
+}
+
 interface InterviewData {
   company: string;
   customCompany?: string;
   role: string;
   customJobDescription?: string;
   resumeFile?: File;
-  questions: string[];
+  questions: string[]; // Simple questions for backward compatibility
+  fullQuestions: QuestionData[]; // Full question objects with follow-ups
   answers: string[];
-  currentQuestion: number;
+  currentQuestion: number; // Keep for backward compatibility
+  currentQuestionIndex: number; // Current main question index
+  currentSubQuestion: number; // Track main vs follow-up questions (0 = main question)
+  questionResponses: QuestionResponse[]; // Store complete question-answer pairs
 }
 
 interface FeedbackData {
@@ -143,6 +247,7 @@ interface FeedbackData {
 }
 
 const MyInterviewWorld = () => {
+  const { user, profile, signOut } = useAuth();
   const [currentStep, setCurrentStep] = useState<Step>("setup");
   const [interviewData, setInterviewData] = useState<InterviewData>({
     company: "",
@@ -151,82 +256,58 @@ const MyInterviewWorld = () => {
     customJobDescription: "",
     resumeFile: undefined,
     questions: [],
+    fullQuestions: [],
     answers: [],
-    currentQuestion: 0
+    currentQuestion: 0,
+    currentQuestionIndex: 0,
+    currentSubQuestion: 0,
+    questionResponses: []
   });
   const [feedbackData, setFeedbackData] = useState<FeedbackData | null>(null);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [evaluationData, setEvaluationData] = useState<any>(null);
+  const [evaluationLoading, setEvaluationLoading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [currentUserId] = useState("mock-user-id"); // Replace with actual user ID from auth
+  const [currentUserId] = useState(user?.id || "guest-user"); // Use actual user ID from auth
   const [showQuestionPreview, setShowQuestionPreview] = useState(false);
   const [generatedQuestions, setGeneratedQuestions] = useState<any>(null);
   const [loadingQuestions, setLoadingQuestions] = useState(false);
+  const [currentAnswer, setCurrentAnswer] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentInterviewId, setCurrentInterviewId] = useState<string | null>(null);
+  const [currentData, setCurrentData] = useState<InterviewData>({
+    company: "",
+    role: "",
+    questions: [],
+    answers: [],
+    currentQuestion: 0,
+    fullQuestions: [],
+    currentQuestionIndex: 0,
+    currentSubQuestion: 0,
+    questionResponses: []
+  });
   const { toast } = useToast();
 
-  // Debug function to test Supabase storage
-  const testSupabaseStorage = async () => {
-    console.log('=== SUPABASE STORAGE DIAGNOSTIC ===');
-    
-    try {
-      // Test 1: Check if supabase client is working
-      const { data: testAuth, error: authError } = await supabase.auth.getSession();
-      console.log('Auth test:', authError ? authError : 'OK');
-      
-      // Test 2: Try to list buckets
-      console.log('Testing bucket listing...');
-      const { data: buckets, error: listError } = await supabase.storage.listBuckets();
-      console.log('List buckets result:', { data: buckets, error: listError });
-      
-      if (buckets && buckets.length > 0) {
-        console.log('Found buckets:');
-        buckets.forEach(bucket => {
-          console.log(`- ${bucket.name} (public: ${bucket.public}, id: ${bucket.id})`);
-        });
-      } else {
-        console.log('No buckets found!');
-      }
-      
-      // Test 3: Try different bucket names
-      console.log('Testing different bucket name variations...');
-      const testBuckets = ['resumes', 'Resumes', 'RESUMES', 'resume', 'Resume'];
-      
-      for (const bucketName of testBuckets) {
-        try {
-          const { data, error } = await supabase.storage.from(bucketName).list('', { limit: 1 });
-          console.log(`Bucket "${bucketName}":`, error ? `ERROR - ${error.message}` : 'EXISTS');
-        } catch (e: any) {
-          console.log(`Bucket "${bucketName}": ERROR -`, e.message);
-        }
-      }
-      
-      // Test 4: Try to create bucket
-      console.log('Attempting to create "resumes" bucket...');
-      try {
-        const { data, error } = await supabase.storage.createBucket('resumes', {
-          public: true,
-          allowedMimeTypes: ['application/pdf'],
-          fileSizeLimit: 10485760
-        });
-        console.log('Create bucket result:', { data, error });
-      } catch (e: any) {
-        console.error('Create bucket failed:', e);
-      }
-      
-      console.log('=== END DIAGNOSTIC ===');
-      console.log('Dashboard URL: https://app.supabase.com/project/sahcdkgvmvjzvvuzyilp/storage/buckets');
-      
+  // Handle authentication-required actions
+  const handleAuthRequiredAction = (action: () => void, actionName: string) => {
+    if (!user) {
       toast({
-        title: "Storage Test Complete",
-        description: "Check browser console for detailed results",
+        title: "Authentication Required",
+        description: `Please sign up or login to ${actionName.toLowerCase()}`,
+        variant: "destructive",
       });
-      
-    } catch (error: any) {
-      console.error('Storage test failed:', error);
-      toast({
-        title: "Storage Test Failed",
-        description: error.message,
-        variant: "destructive"
-      });
+      return;
+    }
+    action();
+  };
+
+  // Handle company selection
+  const handleCompanySelection = () => {
+    // For now, we'll scroll to the tabs section where company selection happens
+    const tabsSection = document.querySelector('[role="tablist"]');
+    if (tabsSection) {
+      tabsSection.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -306,6 +387,16 @@ const MyInterviewWorld = () => {
   };
 
   const handleStartInterview = async () => {
+    // Check if user is authenticated first
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign up or login to start an interview",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Validation logic
     if (!interviewData.company || !interviewData.role) {
       toast({
@@ -414,8 +505,20 @@ const MyInterviewWorld = () => {
         throw new Error(`Interview creation failed: ${interviewError}`);
       }
 
+      // Set the current interview ID for database operations
+      setCurrentInterviewId(interview.id);
+
       // Trigger N8N interview workflow
-      const { success: workflowSuccess, error: workflowError } = await triggerMockInterview({
+      console.log('Starting N8N workflow with data:', {
+        interviewId: interview.id,
+        userId: currentUserId,
+        resumeId,
+        jobDescriptionId,
+        companyName,
+        roleTitle
+      });
+
+      const { success: workflowSuccess, questions_generated, error: workflowError, interview_id: workflowInterviewId, workflow_questions } = await triggerMockInterview({
         interviewId: interview.id,
         userId: currentUserId,
         resumeId,
@@ -429,26 +532,183 @@ const MyInterviewWorld = () => {
         }
       });
 
-      // Always continue with sample questions for demo - don't block on N8N
+      console.log('N8N workflow result:', {
+        success: workflowSuccess,
+        questions_generated,
+        error: workflowError,
+        interview_id: workflowInterviewId,
+        workflow_questions_count: workflow_questions?.length || 0
+      });
+
+      let finalQuestions = SAMPLE_QUESTIONS; // Default fallback
+      let questionsSource = "sample"; // Track source for user feedback
+
+      // Always use our originally created interview ID to prevent duplicates
+      // The N8N workflow should update the existing record, not create a new one
+      const interviewIdToFetch = interview.id;
+      console.log('Interview IDs - Created:', interview.id, 'Workflow returned:', workflowInterviewId, 'Using for fetch (to prevent duplicates):', interviewIdToFetch);
+      
+      // Handle duplicate prevention: If workflow created a different interview ID, clean it up
+      if (workflowInterviewId && workflowInterviewId !== interview.id) {
+        console.warn('[Interview] N8N workflow created different interview ID. Cleaning up duplicate to prevent history duplication.');
+        console.warn('[Interview] Original ID:', interview.id, 'Workflow ID:', workflowInterviewId);
+        
+        try {
+          // Delete the duplicate record created by N8N workflow
+          const { error: deleteError } = await supabase
+            .from('mock_interviews')
+            .delete()
+            .eq('id', workflowInterviewId);
+            
+          if (deleteError) {
+            console.error('[Interview] Error deleting duplicate interview record:', deleteError);
+          } else {
+            console.log('[Interview] Successfully deleted duplicate interview record:', workflowInterviewId);
+          }
+        } catch (error) {
+          console.error('[Interview] Error handling duplicate cleanup:', error);
+        }
+      }
+
+      if (workflowSuccess) {
+        toast({
+          title: "Workflow Started",
+          description: "AI is generating your personalized interview questions...",
+          variant: "default"
+        });
+
+        // First try to use questions directly from workflow response
+        if (workflow_questions && Array.isArray(workflow_questions) && workflow_questions.length > 0) {
+          console.log('Using questions directly from workflow response:', workflow_questions);
+          finalQuestions = workflow_questions.map(q => q.question || q.text || String(q));
+          questionsSource = "ai";
+          
+          toast({
+            title: "Interview Ready",
+            description: `AI generated ${workflow_questions.length} personalized interview questions!`,
+            variant: "default"
+          });
+        } else {
+          console.log('No questions in workflow response, trying database fetch...');
+          
+          // Fallback: Wait for the workflow to complete and fetch the generated questions from database
+          let retryCount = 0;
+          const maxRetries = 5; // Reduced to 15 seconds (3 second intervals)
+          
+          while (retryCount < maxRetries) {
+            await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds
+            
+            try {
+              const { questions, success: fetchSuccess, error: fetchError } = await fetchInterviewQuestions(interviewIdToFetch);
+              
+              if (fetchSuccess && questions.length > 0) {
+                // Convert AI questions to the format expected by the UI
+                finalQuestions = questions.map(q => q.question || q.text || String(q));
+                questionsSource = "ai";
+                
+                toast({
+                  title: "Interview Ready",
+                  description: `AI generated ${questions.length} personalized interview questions!`,
+                  variant: "default"
+                });
+                break;
+              } else if (fetchError) {
+                console.warn(`Attempt ${retryCount + 1}: ${fetchError}`);
+              }
+            } catch (fetchError) {
+              console.warn(`Attempt ${retryCount + 1}: Failed to fetch questions:`, fetchError);
+            }
+            
+            retryCount++;
+          }
+
+          if (retryCount >= maxRetries) {
+            console.log('Database fetch timed out, using sample questions');
+            toast({
+              title: "Using Sample Questions",
+              description: "AI generation took too long, proceeding with sample questions.",
+              variant: "default"
+            });
+          }
+        }
+      } else {
+        // Workflow failed, use sample questions immediately
+        console.warn('N8N workflow failed, using sample questions:', workflowError);
+        toast({
+          title: "Using Sample Questions",
+          description: workflowError || "AI generation not available, using sample questions.",
+          variant: "default"
+        });
+      }
+
+      // Ensure we always have questions to start the interview
+      if (!finalQuestions || finalQuestions.length === 0) {
+        console.log('No questions available, falling back to enhanced sample questions');
+        finalQuestions = SAMPLE_QUESTIONS;
+        questionsSource = "sample";
+      }
+
+      // Set up the interview with the determined questions
+      console.log('Setting up interview with questions:', {
+        source: questionsSource,
+        count: finalQuestions.length,
+        questions: finalQuestions.slice(0, 2) // Log first 2 for debugging
+      });
+
       setInterviewData(prev => ({
         ...prev,
-        questions: SAMPLE_QUESTIONS,
-        answers: new Array(SAMPLE_QUESTIONS.length).fill(""),
+        questions: finalQuestions,
+        answers: new Array(finalQuestions.length).fill(""),
         currentQuestion: 0
       }));
 
-      if (!workflowSuccess) {
-        console.warn('N8N workflow failed, continuing with sample questions:', workflowError);
+      // Also set currentData for the new interview flow
+      if (questionsSource === "ai" && workflow_questions && Array.isArray(workflow_questions)) {
+        // Use full question objects if available
+        setCurrentData(prev => ({
+          ...prev,
+          company: companyName,
+          role: roleTitle,
+          fullQuestions: workflow_questions,
+          questions: finalQuestions,
+          answers: new Array(finalQuestions.length).fill(""),
+          currentQuestion: 0,
+          currentQuestionIndex: 0,
+          currentSubQuestion: 0,
+          questionResponses: []
+        }));
+        
+        // Update interview record with actual total questions count
+        updateInterviewTotalQuestions(workflow_questions);
       } else {
-        console.log('N8N workflow triggered successfully');
+        // Use enhanced sample questions with follow-ups for better testing
+        console.log('Using enhanced sample questions with follow-ups');
+        const enhancedQuestions = SAMPLE_QUESTIONS_WITH_FOLLOWUPS;
+        
+        setCurrentData(prev => ({
+          ...prev,
+          company: companyName,
+          role: roleTitle,
+          fullQuestions: enhancedQuestions,
+          questions: enhancedQuestions.map(q => q.question),
+          answers: new Array(enhancedQuestions.length).fill(""),
+          currentQuestion: 0,
+          currentQuestionIndex: 0,
+          currentSubQuestion: 0,
+          questionResponses: []
+        }));
+        
+        // Update interview record with actual total questions count
+        updateInterviewTotalQuestions(enhancedQuestions);
       }
 
       toast({
         title: "Interview Started",
-        description: "Your mock interview has begun!",
+        description: `Your mock interview has begun with ${questionsSource === "ai" ? "AI-generated" : "sample"} questions!`,
         variant: "default"
       });
 
+      console.log('Transitioning to interview step...');
       setCurrentStep("interview");
 
     } catch (error) {
@@ -463,15 +723,507 @@ const MyInterviewWorld = () => {
     }
   };
 
-  const handleRecordingComplete = (audioBlob: Blob, transcript: string) => {
-    const newAnswers = [...interviewData.answers];
-    newAnswers[interviewData.currentQuestion] = transcript;
-    setInterviewData(prev => ({ ...prev, answers: newAnswers }));
+  const handleRecordingComplete = async (audioBlob: Blob, transcript: string) => {
+    console.log('[Interview] Recording completed:', { transcript });
+    
+    // Simply store the audio and transcript without advancing
+    // The advancement will only happen when "Next Question" button is clicked
+    console.log('[Interview] Audio recorded and transcript ready');
+  };
 
-    if (interviewData.currentQuestion + 1 < interviewData.questions.length) {
-      setInterviewData(prev => ({ ...prev, currentQuestion: prev.currentQuestion + 1 }));
-    } else {
-      handleGenerateFeedback();
+  const saveInterviewResponses = async (responses: QuestionResponse[]) => {
+    if (!currentInterviewId) {
+      console.error('[Database] No interview ID available for saving responses');
+      return;
+    }
+
+    try {
+      console.log('[Database] Saving responses to database:', responses.length, 'responses');
+      console.log('[Database] Current interview ID:', currentInterviewId);
+      
+      for (const response of responses) {
+        console.log('[Database] Processing response for question:', response.question.substring(0, 50) + '...');
+        
+        // First, create/get the question in interview_questions table
+        const { data: existingQuestion, error: questionQueryError } = await supabase
+          .from('interview_questions')
+          .select('id')
+          .eq('mock_interview_id', currentInterviewId)
+          .eq('question_text', response.question)
+          .single();
+
+        let questionId = existingQuestion?.id;
+
+        if (!questionId) {
+          console.log('[Database] Creating new question record with order_index:', responses.indexOf(response) + 1);
+          // Create new question record
+          // Note: Using any type assertion due to TypeScript types being out of sync with actual database schema
+          const { data: newQuestion, error: questionInsertError } = await supabase
+            .from('interview_questions')
+            .insert({
+              mock_interview_id: currentInterviewId,
+              question_text: response.question,
+              question_type: 'behavioral',
+              order_index: responses.indexOf(response) + 1, // Database uses order_index, not question_number
+              ai_generated: true
+            } as any)
+            .select('id')
+            .single();
+
+          if (questionInsertError) {
+            console.error('[Database] Error creating question:', questionInsertError);
+            continue;
+          }
+
+          questionId = newQuestion?.id;
+          console.log('[Database] Successfully created question with ID:', questionId);
+        } else {
+          console.log('[Database] Found existing question with ID:', questionId);
+        }
+
+        if (questionId) {
+          // Save the main response
+          const { error: responseError } = await supabase
+            .from('interview_responses')
+            .insert({
+              question_id: questionId,
+              mock_interview_id: currentInterviewId,
+              response_text: response.answer,
+              responded_at: response.timestamp,
+              created_at: new Date().toISOString()
+            });
+
+          if (responseError) {
+            console.error('[Database] Error saving main response:', responseError);
+          } else {
+            console.log('[Database] Successfully saved main response for question:', response.question.substring(0, 50));
+          }
+
+          // Save follow-up responses if any
+          for (const followUp of response.followUpResponses) {
+            // Create follow-up question record
+            // Note: Using any type assertion due to TypeScript types being out of sync with actual database schema
+            const { data: followUpQuestion, error: followUpQuestionError } = await supabase
+              .from('interview_questions')
+              .insert({
+                mock_interview_id: currentInterviewId,
+                question_text: followUp.question,
+                question_type: 'behavioral',
+                order_index: Math.floor((responses.indexOf(response) + 1) * 10 + response.followUpResponses.indexOf(followUp) + 1), // Sub-numbering for follow-ups: 10, 11, 12 for Q1 follow-ups
+                ai_generated: true
+              } as any)
+              .select('id')
+              .single();
+
+            if (followUpQuestionError) {
+              console.error('[Database] Error creating follow-up question:', followUpQuestionError);
+              continue;
+            }
+
+            // Save follow-up response
+            if (followUpQuestion?.id) {
+              const { error: followUpResponseError } = await supabase
+                .from('interview_responses')
+                .insert({
+                  question_id: followUpQuestion.id,
+                  mock_interview_id: currentInterviewId,
+                  response_text: followUp.answer,
+                  responded_at: new Date().toISOString(),
+                  created_at: new Date().toISOString()
+                });
+
+              if (followUpResponseError) {
+                console.error('[Database] Error saving follow-up response:', followUpResponseError);
+              } else {
+                console.log('[Database] Successfully saved follow-up response');
+              }
+            }
+          }
+        }
+      }
+
+      console.log('[Database] All responses saved successfully');
+    } catch (error) {
+      console.error('[Database] Error saving responses:', error);
+    }
+  };
+
+  // Helper function to update interview progress
+  const updateInterviewProgress = async (responses: QuestionResponse[]) => {
+    if (!currentInterviewId) return;
+
+    // Calculate total questions asked (main + follow-ups)
+    let totalQuestionsAsked = 0;
+    let totalQuestionsAnswered = 0;
+    
+    responses.forEach(response => {
+      totalQuestionsAsked += 1; // Main question
+      totalQuestionsAnswered += 1; // Main question answered
+      totalQuestionsAsked += response.followUpResponses.length; // Follow-up questions
+      totalQuestionsAnswered += response.followUpResponses.length; // Follow-up questions answered
+    });
+
+    try {
+      const { error } = await supabase
+        .from('mock_interviews')
+        .update({
+          total_questions: totalQuestionsAsked,
+          questions_answered: totalQuestionsAnswered
+        })
+        .eq('id', currentInterviewId);
+
+      if (error) {
+        console.error('[Interview] Error updating progress:', error);
+      } else {
+        console.log('[Interview] Updated progress:', {
+          total_questions: totalQuestionsAsked,
+          questions_answered: totalQuestionsAnswered
+        });
+      }
+    } catch (error) {
+      console.error('[Interview] Error updating interview progress:', error);
+    }
+  };
+
+  // Helper function to update total questions count when questions are loaded
+  const updateInterviewTotalQuestions = async (questions: any[]) => {
+    if (!currentInterviewId) return;
+
+    // Calculate total possible questions (main + all possible follow-ups)
+    let totalPossibleQuestions = 0;
+    
+    questions.forEach(question => {
+      totalPossibleQuestions += 1; // Main question
+      if (question.follow_up && Array.isArray(question.follow_up)) {
+        totalPossibleQuestions += question.follow_up.length; // Follow-up questions
+      }
+    });
+
+    try {
+      const { error } = await supabase
+        .from('mock_interviews')
+        .update({
+          total_questions: totalPossibleQuestions
+        })
+        .eq('id', currentInterviewId);
+
+      if (error) {
+        console.error('[Interview] Error updating total questions:', error);
+      } else {
+        console.log('[Interview] Updated total possible questions:', totalPossibleQuestions);
+      }
+    } catch (error) {
+      console.error('[Interview] Error updating total questions:', error);
+    }
+  };
+
+  // Helper function to trigger evaluation workflow
+  const triggerEvaluationWorkflow = async (responses: QuestionResponse[], totalQuestions: number, questionsAnswered: number) => {
+    if (!currentInterviewId) {
+      console.error('[Evaluation] No interview ID available');
+      return;
+    }
+
+    try {
+      setEvaluationLoading(true);
+      console.log('[Evaluation] Starting evaluation workflow...');
+
+      // Format questions and answers for evaluation
+      const questionsAndAnswers = responses.map(response => ({
+        question: response.question,
+        answer: response.answer,
+        followUps: response.followUpResponses.map(followUp => ({
+          question: followUp.question,
+          answer: followUp.answer
+        }))
+      }));
+
+      // Get company and role from current data
+      const companyName = currentData.company || interviewData.company;
+      const roleTitle = currentData.role || interviewData.role;
+
+      const evaluationResult = await triggerInterviewEvaluation({
+        interviewId: currentInterviewId,
+        userId: currentUserId,
+        companyName,
+        roleTitle,
+        questionsAndAnswers,
+        totalQuestions,
+        questionsAnswered
+      });
+
+      if (evaluationResult.success && evaluationResult.evaluation) {
+        console.log('[Evaluation] Evaluation completed successfully');
+        setEvaluationData(evaluationResult.evaluation);
+
+        // Store evaluation results in database
+        const { error: updateError } = await supabase
+          .from('mock_interviews')
+          .update({
+            overall_score: evaluationResult.evaluation.overall_score,
+            competency_scores: evaluationResult.evaluation.competency_scores,
+            strengths: evaluationResult.evaluation.strengths,
+            improvements: evaluationResult.evaluation.improvements,
+            feedback_summary: evaluationResult.evaluation.feedback_summary
+          })
+          .eq('id', currentInterviewId);
+
+        if (updateError) {
+          console.error('[Evaluation] Error storing evaluation results:', updateError);
+        } else {
+          console.log('[Evaluation] Evaluation results stored in database');
+        }
+
+        toast({
+          title: "Evaluation Complete! ✨",
+          description: "Your personalized interview evaluation is ready.",
+          variant: "default"
+        });
+      } else {
+        console.error('[Evaluation] Evaluation failed:', evaluationResult.error);
+        toast({
+          title: "Evaluation Error",
+          description: "Failed to generate evaluation. Please try again.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('[Evaluation] Error triggering evaluation:', error);
+      toast({
+        title: "Evaluation Error",
+        description: "An error occurred while generating your evaluation.",
+        variant: "destructive"
+      });
+    } finally {
+      setEvaluationLoading(false);
+    }
+  };
+
+  const getCurrentQuestion = () => {
+    if (!currentData.fullQuestions || currentData.fullQuestions.length === 0) {
+      return null;
+    }
+    
+    const currentQuestion = currentData.fullQuestions[currentData.currentQuestionIndex];
+    
+    // Return main question if we're at sub-question 0
+    if (currentData.currentSubQuestion === 0) {
+      return {
+        text: currentQuestion.question,
+        number: currentData.currentQuestionIndex + 1,
+        isFollowUp: false,
+        totalQuestions: currentData.fullQuestions.length
+      };
+    }
+    
+    // Return follow-up question
+    if (currentQuestion.follow_up && currentQuestion.follow_up[currentData.currentSubQuestion - 1]) {
+      return {
+        text: currentQuestion.follow_up[currentData.currentSubQuestion - 1],
+        number: currentData.currentQuestionIndex + 1,
+        isFollowUp: true,
+        followUpNumber: currentData.currentSubQuestion,
+        totalQuestions: currentData.fullQuestions.length
+      };
+    }
+    
+    return null;
+  };
+
+  const handleTranscriptUpdate = (transcript: string) => {
+    setCurrentAnswer(transcript);
+    // Clear error when user starts speaking
+    if (error && transcript.trim()) {
+      setError('');
+    }
+  };
+
+  const isLastQuestion = () => {
+    if (!currentData.fullQuestions || currentData.fullQuestions.length === 0) {
+      return false;
+    }
+    
+    const currentQuestion = currentData.fullQuestions[currentData.currentQuestionIndex];
+    const isLastMainQuestion = currentData.currentQuestionIndex === currentData.fullQuestions.length - 1;
+    
+    // If we're on the last main question
+    if (isLastMainQuestion) {
+      // If we're on a main question (sub-question 0) and there are no follow-ups, it's the last question
+      if (currentData.currentSubQuestion === 0 && (!currentQuestion.follow_up || currentQuestion.follow_up.length === 0)) {
+        return true;
+      }
+      // If we're on the last follow-up of the last main question, it's the last question
+      if (currentData.currentSubQuestion > 0 && currentQuestion.follow_up && 
+          currentData.currentSubQuestion === currentQuestion.follow_up.length) {
+        return true;
+      }
+    }
+    
+    return false;
+  };
+
+  const getNextButtonText = () => {
+    if (isLoading) return "Processing...";
+    if (isLastQuestion()) return "Complete Interview";
+    return "Next Question →";
+  };
+
+  const handleNextQuestion = async () => {
+    if (!currentAnswer.trim()) {
+      setError('Please provide an answer before proceeding to the next question.');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      
+      const currentQuestion = currentData.fullQuestions[currentData.currentQuestionIndex];
+      let updatedResponses = [...currentData.questionResponses];
+      
+      if (currentData.currentSubQuestion === 0) {
+        // This is a main question response
+        const questionResponse: QuestionResponse = {
+          questionId: currentQuestion.id,
+          question: currentQuestion.question,
+          answer: currentAnswer,
+          followUpResponses: [],
+          timestamp: new Date().toISOString()
+        };
+        updatedResponses.push(questionResponse);
+        console.log('[Interview] Stored main question response');
+      } else {
+        // This is a follow-up question response
+        const followUpQuestion = currentQuestion.follow_up![currentData.currentSubQuestion - 1];
+        const followUpResponse = {
+          question: followUpQuestion,
+          answer: currentAnswer,
+          timestamp: new Date().toISOString()
+        };
+        
+        // Find the main question response and add follow-up
+        const mainQuestionIndex = updatedResponses.findIndex(r => r.questionId === currentQuestion.id);
+        if (mainQuestionIndex !== -1) {
+          updatedResponses[mainQuestionIndex].followUpResponses.push(followUpResponse);
+          console.log('[Interview] Stored follow-up response');
+        }
+      }
+      
+      // Check if this is a main question and has follow-ups
+      if (currentData.currentSubQuestion === 0 && currentQuestion.follow_up && currentQuestion.follow_up.length > 0) {
+        console.log('[Interview] Moving to first follow-up question');
+        setCurrentData(prev => ({
+          ...prev,
+          currentSubQuestion: 1,
+          questionResponses: updatedResponses
+        }));
+        setCurrentAnswer('');
+        
+        // Update progress - main question answered
+        await updateInterviewProgress(updatedResponses);
+        return;
+      }
+
+      // Check if we're in follow-ups and there are more
+      if (currentData.currentSubQuestion > 0 && 
+          currentQuestion.follow_up && 
+          currentData.currentSubQuestion < currentQuestion.follow_up.length) {
+        console.log('[Interview] Moving to next follow-up question');
+        setCurrentData(prev => ({
+          ...prev,
+          currentSubQuestion: prev.currentSubQuestion + 1,
+          questionResponses: updatedResponses
+        }));
+        setCurrentAnswer('');
+        return;
+      }
+
+      // Move to next main question
+      if (currentData.currentQuestionIndex < currentData.fullQuestions.length - 1) {
+        console.log('[Interview] Moving to next main question');
+        setCurrentData(prev => ({
+          ...prev,
+          currentQuestionIndex: prev.currentQuestionIndex + 1,
+          currentSubQuestion: 0,
+          questionResponses: updatedResponses
+        }));
+        setCurrentAnswer('');
+        
+        // Update progress - main question completed (including follow-ups if any)
+        await updateInterviewProgress(updatedResponses);
+      } else {
+        // Interview completed
+        console.log('[Interview] Interview completed');
+        setCurrentData(prev => ({
+          ...prev,
+          questionResponses: updatedResponses
+        }));
+        
+        // Save to database
+        await saveInterviewResponses(updatedResponses);
+        
+        // Calculate final totals including all main and follow-up questions
+        let totalQuestionsAsked = 0;
+        let totalQuestionsAnswered = 0;
+        
+        updatedResponses.forEach(response => {
+          totalQuestionsAsked += 1; // Main question
+          totalQuestionsAnswered += 1; // Main question answered
+          totalQuestionsAsked += response.followUpResponses.length; // Follow-up questions
+          totalQuestionsAnswered += response.followUpResponses.length; // Follow-up questions answered
+        });
+
+        // Update interview status to completed
+        if (currentInterviewId) {
+          try {
+            const { error: updateError } = await supabase
+              .from('mock_interviews')
+              .update({
+                status: 'completed',
+                completed_at: new Date().toISOString(),
+                total_questions: totalQuestionsAsked,
+                questions_answered: totalQuestionsAnswered,
+                overall_score: null, // Will be set when feedback is generated
+              })
+              .eq('id', currentInterviewId);
+
+            if (updateError) {
+              console.error('[Interview] Error updating interview status:', updateError);
+            } else {
+              console.log('[Interview] Interview status updated to completed with totals:', {
+                total_questions: totalQuestionsAsked,
+                questions_answered: totalQuestionsAnswered
+              });
+            }
+          } catch (error) {
+            console.error('[Interview] Error updating interview:', error);
+          }
+        }
+        
+        // Set interview data for feedback generation
+        setInterviewData(prev => ({
+          ...prev,
+          answers: updatedResponses.map(r => r.answer),
+          questionResponses: updatedResponses
+        }));
+        
+        // Trigger evaluation workflow
+        await triggerEvaluationWorkflow(updatedResponses, totalQuestionsAsked, totalQuestionsAnswered);
+        
+        // Transition to feedback step
+        setCurrentStep("feedback");
+        
+        toast({
+          title: "Interview Completed! 🎉",
+          description: "Generating your personalized evaluation...",
+          variant: "default"
+        });
+      }
+
+    } catch (error) {
+      console.error('[Interview] Error handling next question:', error);
+      setError('Failed to process your response. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -537,123 +1289,266 @@ const MyInterviewWorld = () => {
       role: "",
       questions: [],
       answers: [],
-      currentQuestion: 0
+      currentQuestion: 0,
+      fullQuestions: [],
+      currentQuestionIndex: 0,
+      currentSubQuestion: 0,
+      questionResponses: []
+    });
+    setCurrentData({
+      company: "",
+      role: "",
+      questions: [],
+      answers: [],
+      currentQuestion: 0,
+      fullQuestions: [],
+      currentQuestionIndex: 0,
+      currentSubQuestion: 0,
+      questionResponses: []
     });
     setFeedbackData(null);
   };
 
   const progress = currentStep === "interview" ? 
-    ((interviewData.currentQuestion + 1) / interviewData.questions.length) * 100 : 0;
+    ((currentData.currentQuestionIndex + 1) / (currentData.fullQuestions?.length || 1)) * 100 : 0;
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <section className="relative bg-background py-[120px] overflow-hidden">
-        {/* Subtle gradient overlay at edges */}
+      {/* Modern Authentication Header */}
+      <div className="fixed top-0 right-0 z-50 p-6">
+        {user ? (
+          <div className="flex items-center gap-4 bg-white/80 backdrop-blur-xl border border-white/20 rounded-2xl px-6 py-3 shadow-2xl shadow-black/10">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                {(profile?.full_name || user?.email || '').charAt(0).toUpperCase()}
+              </div>
+              <div className="text-sm">
+                <div className="font-semibold text-gray-900">{profile?.full_name || user?.email}</div>
+                <div className="text-gray-500 text-xs">{user?.email}</div>
+              </div>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => signOut()}
+              className="text-xs border-gray-200 hover:bg-gray-50 transition-all duration-200 rounded-lg"
+            >
+              Logout
+            </Button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 bg-white/80 backdrop-blur-xl border border-white/20 rounded-2xl px-4 py-2 shadow-2xl shadow-black/10">
+            <Button 
+              variant="default" 
+              size="sm"
+              onClick={() => window.location.href = '/register'}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-all duration-200 rounded-lg shadow-lg hover:shadow-xl"
+            >
+              Sign Up
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => window.location.href = '/login'}
+              className="border-gray-200 hover:bg-gray-50 transition-all duration-200 rounded-lg"
+            >
+              Login
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Modern Hero Section */}
+      <section className="relative bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 py-[140px] overflow-hidden">
+        {/* Advanced gradient overlays */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-0 w-1/3 h-full bg-gradient-to-r from-primary/5 to-transparent"></div>
-          <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-secondary/5 to-transparent"></div>
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2/3 h-1/2 bg-gradient-to-t from-primary/3 to-transparent"></div>
+          {/* Primary gradient mesh */}
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-600/10 via-purple-600/5 to-transparent"></div>
+          <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-purple-600/10 via-blue-600/5 to-transparent"></div>
+          
+          {/* Floating orbs */}
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-purple-400/20 to-blue-400/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+          
+          {/* Grid pattern */}
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDYwIDAgTCAwIDAgMCA2MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjEiIG9wYWNpdHk9IjAuMDMiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-40"></div>
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="text-center max-w-4xl mx-auto">
-            {/* Headline */}
-            <h1 className="font-heading text-5xl md:text-7xl lg:text-8xl font-black text-foreground leading-tight mb-6">
-              MyInterviewWorld
+          <div className="text-center max-w-5xl mx-auto">
+            {/* Modern badge */}
+            <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-xl border border-white/20 rounded-full px-6 py-2 mb-8 shadow-lg">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-sm font-medium text-gray-700">AI-Powered Interview Training</span>
+            </div>
+            
+            {/* Modern headline with gradient */}
+            <h1 className="font-heading text-6xl md:text-8xl lg:text-9xl font-black bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent leading-tight mb-6">
+              MyInterview.ai
             </h1>
             
-            {/* Tagline */}
-            <h2 className="font-heading text-2xl md:text-3xl lg:text-4xl font-medium text-foreground mb-6 tracking-wider">
-              Your AI-powered placement coach
+            {/* Modern tagline */}
+            <h2 className="font-heading text-2xl md:text-4xl lg:text-5xl font-semibold text-gray-700 mb-6 tracking-wide">
+              Let the Dream Job Land on You
             </h2>
             
-            {/* Subtext */}
-            <h3 className="font-fancy text-xl md:text-2xl lg:text-3xl italic text-foreground mb-8">
-              Practice real campus interviews with AI voices, video answers, and instant feedback tailored to company job roles.
-            </h3>
+            {/* Enhanced subtext */}
+            <p className="text-xl md:text-2xl lg:text-3xl text-gray-600 mb-12 max-w-4xl mx-auto leading-relaxed">
+              Register details those instructions Start interview
+            </p>
             
-            {/* Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center flex-wrap">
+            {/* Modern action buttons */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
+              {/* Primary CTA */}
               <Button 
                 size="lg" 
-                className="btn-primary text-lg px-8 py-4 min-w-[250px] rounded-2xl font-medium"
+                className="group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-lg px-8 py-6 rounded-2xl font-semibold shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 border-0"
+                onClick={() => handleAuthRequiredAction(() => {
+                  window.location.href = '/register';
+                }, "Register Details")}
               >
-                📝 Register Details
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">📝</span>
+                  <span>Register Details</span>
+                </div>
+              </Button>
+              
+              {/* Secondary actions */}
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="group bg-white/80 backdrop-blur-xl border-2 border-white/20 hover:border-blue-200 text-gray-700 hover:text-blue-700 text-lg px-8 py-6 rounded-2xl font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+                onClick={() => handleAuthRequiredAction(handleCompanySelection, "Choose Company")}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl group-hover:scale-110 transition-transform">🏢</span>
+                  <span>Choose Company</span>
+                </div>
               </Button>
               
               <Button 
                 variant="outline" 
                 size="lg" 
-                className="btn-outline text-lg px-8 py-4 min-w-[250px] rounded-2xl font-medium"
+                className="group bg-white/80 backdrop-blur-xl border-2 border-white/20 hover:border-purple-200 text-gray-700 hover:text-purple-700 text-lg px-8 py-6 rounded-2xl font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+                onClick={() => handleAuthRequiredAction(() => {
+                  const tabsSection = document.querySelector('[role="tablist"]');
+                  if (tabsSection) {
+                    tabsSection.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }, "Select JD Role")}
               >
-                🏢 Choose Company
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl group-hover:scale-110 transition-transform">👨‍💼</span>
+                  <span>Select JD Role</span>
+                </div>
               </Button>
               
               <Button 
                 variant="outline" 
                 size="lg" 
-                className="btn-outline text-lg px-8 py-4 min-w-[250px] rounded-2xl font-medium"
+                className="group bg-white/80 backdrop-blur-xl border-2 border-white/20 hover:border-green-200 text-gray-700 hover:text-green-700 text-lg px-8 py-6 rounded-2xl font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+                onClick={() => handleAuthRequiredAction(() => {
+                  const tabsSection = document.querySelector('[role="tablist"]');
+                  if (tabsSection) {
+                    tabsSection.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }, "Start Interview")}
               >
-                👨‍💼 Select JD Role
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl group-hover:scale-110 transition-transform">🎥</span>
+                  <span>Start Interview</span>
+                </div>
+              </Button>
+            </div>
+            
+            {/* Secondary action buttons */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-4xl mx-auto mt-8">
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="group bg-white/60 backdrop-blur-xl border border-white/30 hover:border-blue-300 text-gray-600 hover:text-blue-600 text-base px-6 py-4 rounded-xl font-medium shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-xl group-hover:scale-110 transition-transform">🎙️</span>
+                  <span>Record Video Answer</span>
+                </div>
               </Button>
               
               <Button 
                 variant="outline" 
                 size="lg" 
-                className="btn-outline text-lg px-8 py-4 min-w-[250px] rounded-2xl font-medium"
+                className="group bg-white/60 backdrop-blur-xl border border-white/30 hover:border-purple-300 text-gray-600 hover:text-purple-600 text-base px-6 py-4 rounded-xl font-medium shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
               >
-                🎥 Start Interview
+                <div className="flex items-center gap-2">
+                  <span className="text-xl group-hover:scale-110 transition-transform">📊</span>
+                  <span>Get AI Feedback</span>
+                </div>
               </Button>
               
               <Button 
                 variant="outline" 
                 size="lg" 
-                className="btn-outline text-lg px-8 py-4 min-w-[250px] rounded-2xl font-medium"
+                className="group bg-white/60 backdrop-blur-xl border border-white/30 hover:border-green-300 text-gray-600 hover:text-green-600 text-base px-6 py-4 rounded-xl font-medium shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
               >
-                🎙️ Record Video Answer
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="btn-outline text-lg px-8 py-4 min-w-[250px] rounded-2xl font-medium"
-              >
-                📊 Get AI Feedback
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="btn-outline text-lg px-8 py-4 min-w-[250px] rounded-2xl font-medium"
-              >
-                ⬇️ Download Report (PDF)
+                <div className="flex items-center gap-2">
+                  <span className="text-xl group-hover:scale-110 transition-transform">⬇️</span>
+                  <span>Download Report</span>
+                </div>
               </Button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Navigation Tabs */}
-      <section className="border-b bg-background sticky top-0 z-40">
-        <div className="container mx-auto px-4">
-          <Tabs value={currentStep} onValueChange={(value) => setCurrentStep(value as Step)} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 max-w-2xl mx-auto">
-              <TabsTrigger value="setup" className="flex items-center gap-2">
-                <Target className="w-4 h-4" />
-                Setup
+      {/* Modern Navigation Tabs - Fixed */}
+      <section className="relative bg-white/80 backdrop-blur-xl border-b border-white/20 sticky top-0 z-40 shadow-lg">
+        <div className="container mx-auto px-4 py-6">
+          <Tabs value={currentStep} onValueChange={(value) => {
+            // Allow "setup" for everyone, but require auth for other tabs
+            if (value !== "setup" && !user) {
+              toast({
+                title: "Authentication Required",
+                description: "Please sign up or login to access this feature",
+                variant: "destructive",
+              });
+              return;
+            }
+            setCurrentStep(value as Step);
+          }} className="w-full">
+            <TabsList className="grid w-full grid-cols-4 max-w-5xl mx-auto bg-white/80 backdrop-blur-xl p-3 rounded-3xl border-2 border-white/30 shadow-2xl">
+              <TabsTrigger 
+                value="setup" 
+                className="flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-bold text-base transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-xl hover:bg-white/90 text-gray-700 hover:text-gray-900"
+              >
+                <Target className="w-5 h-5" />
+                <span className="hidden sm:inline">Setup</span>
+                <span className="sm:hidden text-xs">Setup</span>
               </TabsTrigger>
-              <TabsTrigger value="interview" disabled={currentStep === "setup"} className="flex items-center gap-2">
-                <Briefcase className="w-4 h-4" />
-                Interview
+              <TabsTrigger 
+                value="interview" 
+                disabled={currentStep === "setup"} 
+                className="flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-bold text-base transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-xl hover:bg-white/90 text-gray-700 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Briefcase className="w-5 h-5" />
+                <span className="hidden sm:inline">Interview</span>
+                <span className="sm:hidden text-xs">Interview</span>
               </TabsTrigger>
-              <TabsTrigger value="feedback" disabled={!feedbackData} className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4" />
-                Results
+              <TabsTrigger 
+                value="feedback" 
+                disabled={!feedbackData && !evaluationData && !evaluationLoading} 
+                className="flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-bold text-base transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-xl hover:bg-white/90 text-gray-700 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <TrendingUp className="w-5 h-5" />
+                <span className="hidden sm:inline">Results</span>
+                <span className="sm:hidden text-xs">Results</span>
               </TabsTrigger>
-              <TabsTrigger value="history" className="flex items-center gap-2">
-                <History className="w-4 h-4" />
-                History
+              <TabsTrigger 
+                value="history" 
+                className="flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-bold text-base transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-600 data-[state=active]:to-red-600 data-[state=active]:text-white data-[state=active]:shadow-xl hover:bg-white/90 text-gray-700 hover:text-gray-900"
+              >
+                <History className="w-5 h-5" />
+                <span className="hidden sm:inline">History</span>
+                <span className="sm:hidden text-xs">History</span>
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -661,70 +1556,121 @@ const MyInterviewWorld = () => {
       </section>
 
       <div className="section-content">
-        <Tabs value={currentStep} onValueChange={(value) => setCurrentStep(value as Step)} className="w-full">
+        <Tabs value={currentStep} onValueChange={(value) => {
+          // Allow "setup" for everyone, but require auth for other tabs
+          if (value !== "setup" && !user) {
+            toast({
+              title: "Authentication Required",
+              description: "Please sign up or login to access this feature",
+              variant: "destructive",
+            });
+            return;
+          }
+          setCurrentStep(value as Step);
+        }} className="w-full">
           <TabsContent value="setup" className="mt-0">
-        {/* How It Works Section */}
-        <section className="section-padding">
-          <div className="text-center mb-16">
-            <h2 className="font-heading text-5xl font-bold mb-6 text-foreground">
-              How Interview World Works
-            </h2>
-            <p className="font-body text-xl text-muted-foreground max-w-3xl mx-auto">
-              A comprehensive 4-step process to master your interview skills.
-            </p>
+        {/* Modern How It Works Section - Full Width Background Fixed */}
+        <section className="relative w-full bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 py-20">
+          {/* Full-width background with decorative elements */}
+          <div className="absolute inset-0 overflow-hidden">
+            {/* Floating orbs for visual interest */}
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-pulse"></div>
+            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-purple-400/20 to-blue-400/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+            
+            {/* Grid pattern overlay */}
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDYwIDAgTCAwIDAgMCA2MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjEiIG9wYWNpdHk9IjAuMDMiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-40"></div>
           </div>
+          
+          {/* Content container */}
+          <div className="w-full px-4 relative z-10">
+            <div className="text-center mb-20">
+              <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-xl border border-white/20 rounded-full px-6 py-2 mb-8 shadow-lg">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium text-gray-700">Step-by-Step Process</span>
+              </div>
+              <h2 className="font-heading text-6xl md:text-7xl font-black bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent leading-tight mb-6">
+                How Interview World Works
+              </h2>
+              <p className="font-body text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
+                A comprehensive 4-step process to master your interview skills and land your dream job.
+              </p>
+            </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-            {HOW_IT_WORKS.map((step, index) => (
-              <Card key={index} className="card-world-class text-center hover-lift">
-                <CardHeader>
-                  <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <step.icon className="w-8 h-8 text-primary" />
-                  </div>
-                  <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="font-ui font-bold text-white">{step.number}</span>
-                  </div>
-                  <CardTitle className="font-heading text-lg">{step.title}</CardTitle>
-                  <CardDescription className="font-body">{step.description}</CardDescription>
-                </CardHeader>
-              </Card>
-            ))}
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
+              {HOW_IT_WORKS.map((step, index) => (
+                <Card key={index} className="group relative bg-white/80 backdrop-blur-xl border-2 border-white/20 rounded-3xl shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-500 overflow-hidden">
+                  {/* Animated background gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 group-hover:from-blue-500/10 group-hover:to-purple-500/10 transition-all duration-500"></div>
+                  
+                  <CardHeader className="relative z-10 text-center p-8">
+                    {/* Modern icon container */}
+                    <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl group-hover:scale-110 transition-transform duration-300">
+                      <step.icon className="w-10 h-10 text-white" />
+                    </div>
+                    
+                    {/* Step number badge */}
+                    <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                      <span className="font-ui font-bold text-white text-lg">{step.number}</span>
+                    </div>
+                    
+                    <CardTitle className="font-heading text-2xl font-bold text-gray-900 mb-4 group-hover:text-blue-700 transition-colors">
+                      {step.title}
+                    </CardTitle>
+                    <CardDescription className="font-body text-gray-600 text-lg leading-relaxed">
+                      {step.description}
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+              ))}
+            </div>
           </div>
         </section>
 
-        {/* Interview Flow */}
+        {/* Modern Interview Setup Flow */}
         {currentStep === "setup" && (
           <section className="section-padding fade-in">
-            <Card className="card-world-class max-w-4xl mx-auto">
-              <CardHeader className="text-center">
-                <div className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <Target className="w-10 h-10 text-primary" />
+            <Card className="relative max-w-6xl mx-auto bg-white/80 backdrop-blur-xl border-2 border-white/20 rounded-3xl shadow-2xl overflow-hidden">
+              {/* Animated background */}
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5"></div>
+              
+              <CardHeader className="relative z-10 text-center p-12 bg-gradient-to-r from-blue-50/80 to-purple-50/80">
+                <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl">
+                  <Target className="w-12 h-12 text-white" />
                 </div>
-                <CardTitle className="font-heading text-4xl mb-4">Start Mock Interview</CardTitle>
-                <CardDescription className="font-body text-lg">
-                  Select your target company and position to begin practicing
+                <CardTitle className="font-heading text-5xl md:text-6xl font-black bg-gradient-to-r from-gray-900 to-blue-800 bg-clip-text text-transparent mb-6">
+                  Start Mock Interview
+                </CardTitle>
+                <CardDescription className="font-body text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                  Select your target company and position to begin practicing with AI-powered interview simulation
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-8">
-                <div className="grid md:grid-cols-2 gap-8">
-                  <div className="space-y-4">
-                    <label className="font-ui text-lg font-medium text-foreground">Target Company</label>
+              
+              <CardContent className="relative z-10 p-12 space-y-10">
+                {/* Modern Company and Role Selection */}
+                <div className="grid md:grid-cols-2 gap-10">
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <span className="text-white font-bold text-sm">1</span>
+                      </div>
+                      <label className="font-ui text-xl font-bold text-gray-800">Target Company</label>
+                    </div>
                     <Select value={interviewData.company} onValueChange={(value) => 
                       setInterviewData(prev => ({ ...prev, company: value }))
                     }>
-                      <SelectTrigger className="h-14 font-ui">
+                      <SelectTrigger className="h-16 font-ui text-lg bg-white/80 backdrop-blur-sm border-2 border-gray-200 hover:border-blue-300 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300">
                         <SelectValue placeholder="Select a company" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-white/95 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl">
                         {Object.entries(COMPANY_CATEGORIES).map(([category, companies]) => (
                           <div key={category}>
-                            <div className="px-2 py-1">
-                              <div className="text-xs font-semibold text-foreground uppercase tracking-wide">
+                            <div className="px-4 py-3">
+                              <div className="text-sm font-bold text-gray-800 uppercase tracking-wide bg-gradient-to-r from-blue-100 to-purple-100 px-3 py-1 rounded-lg">
                                 {category}
                               </div>
                             </div>
                             {companies.map(company => (
-                              <SelectItem key={company} value={company} className="pl-4 font-body">
+                              <SelectItem key={company} value={company} className="pl-6 font-body text-lg py-3 hover:bg-blue-50 rounded-lg mx-2">
                                 {company}
                               </SelectItem>
                             ))}
@@ -733,65 +1679,86 @@ const MyInterviewWorld = () => {
                       </SelectContent>
                     </Select>
                     
-                    {/* Custom Company Input */}
+                    {/* Modern Custom Company Input */}
                     {interviewData.company === "Other" && (
-                      <div className="space-y-2">
-                        <label className="font-ui text-sm font-medium text-foreground">Company Name</label>
+                      <div className="space-y-4 animate-in fade-in-50 duration-300">
+                        <label className="font-ui text-lg font-semibold text-gray-700">Company Name</label>
                         <Input
                           placeholder="Enter company name"
                           value={interviewData.customCompany || ""}
                           onChange={(e) => setInterviewData(prev => ({ ...prev, customCompany: e.target.value }))}
-                          className="h-12"
+                          className="h-14 text-lg bg-white/80 backdrop-blur-sm border-2 border-gray-200 hover:border-blue-300 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
                         />
                       </div>
                     )}
                   </div>
 
-                  <div className="space-y-4">
-                    <label className="font-ui text-lg font-medium text-foreground">Job Role</label>
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
+                        <span className="text-white font-bold text-sm">2</span>
+                      </div>
+                      <label className="font-ui text-xl font-bold text-gray-800">Job Role</label>
+                    </div>
                     <Select value={interviewData.role} onValueChange={(value) => 
                       setInterviewData(prev => ({ ...prev, role: value }))
                     }>
-                      <SelectTrigger className="h-14 font-ui">
+                      <SelectTrigger className="h-16 font-ui text-lg bg-white/80 backdrop-blur-sm border-2 border-gray-200 hover:border-purple-300 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300">
                         <SelectValue placeholder="Select a job role" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-white/95 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl">
                         {JOB_ROLES.map(role => (
-                          <SelectItem key={role} value={role} className="font-body">{role}</SelectItem>
+                          <SelectItem key={role} value={role} className="font-body text-lg py-3 hover:bg-purple-50 rounded-lg mx-2">{role}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
 
-                {/* Custom Job Description */}
+                {/* Modern Custom Job Description */}
                 {interviewData.role === "Custom" && (
-                  <div className="space-y-4">
-                    <label className="font-ui text-lg font-medium text-foreground">Job Description</label>
+                  <div className="space-y-6 animate-in fade-in-50 duration-300">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-blue-600 rounded-lg flex items-center justify-center">
+                        <span className="text-white font-bold text-sm">📄</span>
+                      </div>
+                      <label className="font-ui text-xl font-bold text-gray-800">Job Description</label>
+                    </div>
                     <Textarea
-                      placeholder="Paste the job description here..."
+                      placeholder="Paste the complete job description here..."
                       value={interviewData.customJobDescription || ""}
                       onChange={(e) => setInterviewData(prev => ({ ...prev, customJobDescription: e.target.value }))}
-                      className="min-h-[120px] resize-none"
+                      className="min-h-[160px] resize-none text-lg bg-white/80 backdrop-blur-sm border-2 border-gray-200 hover:border-green-300 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6"
                     />
-                    <p className="text-sm text-muted-foreground">
-                      Paste the complete job description to get personalized interview questions based on the role requirements.
-                    </p>
+                    <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl border border-green-200">
+                      <p className="text-base text-green-800 flex items-start gap-3">
+                        <span className="text-xl">💡</span>
+                        <span>Paste the complete job description to get personalized interview questions based on the specific role requirements and skills needed.</span>
+                      </p>
+                    </div>
                   </div>
                 )}
 
-                {/* Resume Upload */}
-                <div className="space-y-4">
-                  <label className="font-ui text-lg font-medium text-foreground">Upload Resume (Optional)</label>
-                  <div className="border-2 border-dashed border-primary/20 rounded-xl p-6 text-center hover:border-primary/40 transition-colors">
-                    <div className="space-y-4">
-                      <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
-                        <Upload className="w-8 h-8 text-primary" />
+                {/* Modern Resume Upload */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
+                      <span className="text-white font-bold text-sm">3</span>
+                    </div>
+                    <label className="font-ui text-xl font-bold text-gray-800">Upload Resume (Optional)</label>
+                  </div>
+                  <div className="relative border-3 border-dashed border-blue-300 rounded-3xl p-10 text-center bg-gradient-to-br from-blue-50/80 to-purple-50/80 hover:border-blue-400 hover:bg-gradient-to-br hover:from-blue-100/80 hover:to-purple-100/80 transition-all duration-300 group">
+                    {/* Animated background elements */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-3xl group-hover:from-blue-500/10 group-hover:to-purple-500/10 transition-all duration-300"></div>
+                    
+                    <div className="relative z-10 space-y-6">
+                      <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl flex items-center justify-center mx-auto shadow-2xl group-hover:scale-110 transition-transform duration-300">
+                        <Upload className="w-10 h-10 text-white" />
                       </div>
                       <div>
-                        <p className="font-ui text-lg font-medium text-foreground mb-2">Upload your resume (Max 3 pages)</p>
-                        <p className="font-body text-muted-foreground text-sm">
-                          Upload your resume (PDF only, max 3 pages) to get personalized questions based on your experience
+                        <p className="font-ui text-2xl font-bold text-gray-800 mb-3">Upload your resume (Max 3 pages)</p>
+                        <p className="font-body text-gray-600 text-lg leading-relaxed max-w-2xl mx-auto">
+                          Upload your resume (PDF only, max 3 pages) to get personalized questions based on your experience and skills
                         </p>
                       </div>
                       <Input
@@ -834,33 +1801,21 @@ const MyInterviewWorld = () => {
                         id="resume-upload"
                       />
                       <label htmlFor="resume-upload">
-                        <Button type="button" variant="outline" className="btn-outline cursor-pointer" asChild>
-                          <span>
-                            <FileText className="w-5 h-5 mr-2" />
+                        <Button type="button" variant="outline" className="bg-white/80 backdrop-blur-sm border-2 border-blue-300 hover:border-blue-400 text-blue-700 hover:text-blue-800 px-8 py-4 rounded-2xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 cursor-pointer" asChild>
+                          <span className="flex items-center gap-3">
+                            <FileText className="w-6 h-6" />
                             Choose PDF File
                           </span>
                         </Button>
                       </label>
                       {interviewData.resumeFile && (
-                        <div className="flex items-center justify-center gap-2 text-sm text-green-600">
-                          <CheckCircle className="w-4 h-4" />
-                          {interviewData.resumeFile.name}
+                        <div className="flex items-center justify-center gap-3 text-lg text-green-700 bg-green-50 px-6 py-3 rounded-2xl border border-green-200 animate-in fade-in-50 duration-300">
+                          <CheckCircle className="w-6 h-6" />
+                          <span className="font-semibold">{interviewData.resumeFile.name}</span>
                         </div>
                       )}
                     </div>
                   </div>
-                </div>
-
-                {/* Debug Storage Button - Remove in production */}
-                <div className="space-y-4">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={testSupabaseStorage}
-                    className="w-full border-yellow-500 text-yellow-700 hover:bg-yellow-50"
-                  >
-                    🐛 Debug Storage (Check Console)
-                  </Button>
                 </div>
 
                 <div className="p-6 bg-primary/5 rounded-2xl border border-primary/20">
@@ -1027,81 +1982,6 @@ const MyInterviewWorld = () => {
           </section>
         )}
 
-        {currentStep === "interview" && (
-          <section className="section-padding fade-in">
-            <div className="max-w-4xl mx-auto">
-              {/* Progress Header */}
-              <Card className="card-world-class mb-8">
-                <CardContent className="p-8">
-                  <div className="flex justify-between items-center mb-6">
-                    <div>
-                      <h2 className="font-heading text-3xl font-bold text-foreground mb-2">
-                        Question {interviewData.currentQuestion + 1} of {interviewData.questions.length}
-                      </h2>
-                      <p className="font-body text-muted-foreground">
-                        Take your time and answer confidently
-                      </p>
-                    </div>
-                    <Badge className="bg-primary/10 text-primary px-4 py-2 font-ui">
-                      {interviewData.company} - {interviewData.role}
-                    </Badge>
-                  </div>
-                  <div className="relative">
-                    <Progress value={progress} className="h-3 bg-muted rounded-full" />
-                    <div 
-                      className="absolute top-0 left-0 h-full bg-primary rounded-full transition-all duration-500"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Question & Answer */}
-              <div className="grid lg:grid-cols-5 gap-8">
-                {/* Question Panel */}
-                <div className="lg:col-span-2">
-                  <Card className="card-world-class h-full">
-                    <CardHeader>
-                      <CardTitle className="font-heading text-xl text-foreground">Interview Question</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="p-6 bg-primary/5 rounded-2xl border border-primary/20 mb-6">
-                        <p className="font-body text-lg text-foreground leading-relaxed">
-                          {interviewData.questions[interviewData.currentQuestion]}
-                        </p>
-                      </div>
-                      <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
-                        <p className="font-body text-blue-800 text-sm">
-                          💡 <strong>Tip:</strong> Use the STAR method (Situation, Task, Action, Result) for behavioral questions.
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Answer Panel */}
-                <div className="lg:col-span-3">
-                  <Card className="card-world-class h-full">
-                    <CardHeader>
-                      <CardTitle className="font-heading text-xl text-foreground">Your Answer</CardTitle>
-                      <CardDescription className="font-body">
-                        Record your response (max 90 seconds)
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <VoiceRecorder 
-                        onRecordingComplete={handleRecordingComplete}
-                        placeholder="Press the mic button to start recording your answer"
-                        maxDuration={90}
-                      />
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-
         {feedbackLoading && (
           <section className="section-padding fade-in">
             <div className="text-center">
@@ -1145,129 +2025,285 @@ const MyInterviewWorld = () => {
           </section>
         )}
 
-        {/* Weekend Clinics Section */}
-        <section className="section-padding bg-muted/30">
-          <div className="text-center mb-12">
-            <h2 className="font-heading text-4xl font-bold mb-4 text-foreground">
-              Weekend Clinics
-            </h2>
-            <p className="font-body text-lg text-muted-foreground">
-              Join our community mock interview sessions
-            </p>
-          </div>
-
-          <Card className="card-world-class max-w-2xl mx-auto text-center">
-            <CardHeader>
-              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Calendar className="w-8 h-8 text-primary" />
-              </div>
-              <CardTitle className="font-heading text-2xl">Sunday Mock Interview Clinic</CardTitle>
-              <CardDescription className="font-body">
-                Next Session: This Sunday, 10:00 AM - 12:00 PM
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4 mb-6">
-                <div className="flex justify-between items-center">
-                  <span className="font-ui font-medium">Format:</span>
-                  <span className="font-body">Group + 1-on-1 sessions</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="font-ui font-medium">Duration:</span>
-                  <span className="font-body">2 hours</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="font-ui font-medium">Spots Available:</span>
-                  <span className="font-body">12/20</span>
-                </div>
-              </div>
-              <Button className="btn-indigo w-full">
-                <Users className="w-5 h-5 mr-2" />
-                Register Now
-              </Button>
-            </CardContent>
-          </Card>
-        </section>
-
-        {/* Services Strip */}
-        <section className="section-padding">
-          <div className="text-center mb-12">
-            <h2 className="font-heading text-4xl font-bold mb-4 text-foreground">
-              1-on-1 Training
-            </h2>
-            <p className="font-body text-lg text-muted-foreground">
-              Get personalized interview coaching
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            <Card className="card-world-class text-center">
-              <CardHeader>
-                <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Briefcase className="w-8 h-8 text-primary" />
-                </div>
-                <CardTitle className="font-heading text-xl">Interview Coaching</CardTitle>
-                <CardDescription className="font-body">
-                  HR + role-specific practice with recruiter-style feedback
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button className="btn-indigo w-full">Book Now</Button>
-              </CardContent>
-            </Card>
-
-            <Card className="card-world-class text-center">
-              <CardHeader>
-                <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Target className="w-8 h-8 text-primary" />
-                </div>
-                <CardTitle className="font-heading text-xl">Company-Specific Prep</CardTitle>
-                <CardDescription className="font-body">
-                  Targeted preparation for your dream company's interview process
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button className="btn-indigo w-full">Book Now</Button>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
         </TabsContent>
 
         <TabsContent value="interview" className="mt-0">
           {currentStep === "interview" && (
-            <section className="section-padding fade-in">
-              <div className="max-w-4xl mx-auto">
-                {/* This will contain the interview content when implemented */}
-                <Card className="card-world-class">
-                  <CardContent className="p-8 text-center">
-                    <h3 className="font-heading text-2xl font-bold mb-4">Interview In Progress</h3>
-                    <p className="text-muted-foreground">Interview functionality will be displayed here.</p>
+            <section className="relative w-full bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 py-20 fade-in">
+              <div className="max-w-7xl mx-auto px-4">
+                {/* Modern Progress Header */}
+                <Card className="relative bg-white/80 backdrop-blur-xl border-2 border-white/20 rounded-3xl shadow-2xl mb-10 overflow-hidden">
+                  {/* Animated background */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5"></div>
+                  
+                  <CardContent className="relative z-10 p-8">
+                    <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
+                      <div className="flex-1">
+                        {(() => {
+                          const currentQ = getCurrentQuestion();
+                          if (!currentQ) return null;
+                          
+                          return (
+                            <div className="space-y-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+                                  <Briefcase className="w-6 h-6 text-white" />
+                                </div>
+                                <h2 className="font-heading text-4xl md:text-5xl font-black bg-gradient-to-r from-gray-900 to-blue-800 bg-clip-text text-transparent">
+                                  Interview Question
+                                  {currentQ.isFollowUp && (
+                                    <span className="text-2xl text-blue-600 ml-3 font-normal">
+                                      (Follow-up {currentQ.followUpNumber})
+                                    </span>
+                                  )}
+                                </h2>
+                              </div>
+                              <p className="font-body text-xl text-gray-600 max-w-2xl">
+                                {currentQ.isFollowUp 
+                                  ? "Follow-up question based on your previous answer - dive deeper into your response"
+                                  : "Take your time, think through your answer, and respond confidently"
+                                }
+                              </p>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                      <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 font-ui text-lg rounded-2xl shadow-lg">
+                        {currentData.company} - {currentData.role}
+                      </Badge>
+                    </div>
+                    
+                    {/* Modern Progress Bar */}
+                    <div className="relative">
+                      <div className="w-full h-4 bg-gray-200 rounded-full overflow-hidden shadow-inner">
+                        <div 
+                          className="h-full bg-gradient-to-r from-green-500 to-blue-600 rounded-full transition-all duration-700 ease-out shadow-lg"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                      <div className="flex justify-between items-center mt-3">
+                        <span className="text-sm font-medium text-gray-600">Progress</span>
+                        <span className="text-sm font-bold text-blue-600">{Math.round(progress)}% Complete</span>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
+
+                {/* Modern Question & Answer Interface */}
+                <div className="grid lg:grid-cols-5 gap-8">
+                  {/* Question Panel - Video Call Style */}
+                  <div className="lg:col-span-2">
+                    <Card className="relative h-full bg-white/80 backdrop-blur-xl border-2 border-white/20 rounded-3xl shadow-2xl overflow-hidden">
+                      {/* Simulated video call header */}
+                      <div className="bg-gradient-to-r from-gray-800 to-gray-900 p-4 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                          <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                        </div>
+                        <div className="text-white text-sm font-medium">AI Interviewer</div>
+                        <div className="w-6 h-6"></div>
+                      </div>
+                      
+                      <CardHeader className="p-8 bg-gradient-to-br from-blue-50/80 to-purple-50/80">
+                        <CardTitle className="font-heading text-2xl font-bold text-gray-900 flex items-center gap-3">
+                          <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                            <span className="text-white font-bold text-sm">Q</span>
+                          </div>
+                          Interview Question
+                        </CardTitle>
+                      </CardHeader>
+                      
+                      <CardContent className="p-8">
+                        <div className="p-8 bg-gradient-to-br from-blue-50 to-purple-50 rounded-3xl border-2 border-blue-200 mb-8 shadow-inner">
+                          <p className="font-body text-xl text-gray-800 leading-relaxed">
+                            {(() => {
+                              const currentQ = getCurrentQuestion();
+                              return currentQ ? currentQ.text : 'Loading question...';
+                            })()}
+                          </p>
+                        </div>
+                        <div className="p-6 bg-gradient-to-r from-blue-100 to-purple-100 rounded-2xl border border-blue-300">
+                          <p className="font-body text-blue-800 text-lg flex items-start gap-3">
+                            <span className="text-2xl">💡</span>
+                            <span><strong>Pro Tip:</strong> Use the STAR method (Situation, Task, Action, Result) for behavioral questions to structure your response effectively.</span>
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Answer Panel - Modern Recording Interface */}
+                  <div className="lg:col-span-3">
+                    <Card className="relative h-full bg-white/80 backdrop-blur-xl border-2 border-white/20 rounded-3xl shadow-2xl overflow-hidden">
+                      {/* Recording interface header */}
+                      <div className="bg-gradient-to-r from-green-600 to-blue-600 p-4 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-4 h-4 bg-red-500 rounded-full animate-pulse"></div>
+                          <span className="text-white font-semibold">Recording Your Response</span>
+                        </div>
+                        <div className="text-white text-sm">Max 90 seconds</div>
+                      </div>
+                      
+                      <CardHeader className="p-8 bg-gradient-to-br from-green-50/80 to-blue-50/80">
+                        <CardTitle className="font-heading text-2xl font-bold text-gray-900 flex items-center gap-3">
+                          <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-blue-600 rounded-lg flex items-center justify-center">
+                            <span className="text-white font-bold text-sm">A</span>
+                          </div>
+                          Your Answer
+                        </CardTitle>
+                        <CardDescription className="font-body text-lg text-gray-600">
+                          Record your response (maximum 90 seconds) - speak clearly and confidently
+                        </CardDescription>
+                      </CardHeader>
+                      
+                      <CardContent className="p-8">
+                        <VoiceRecorder 
+                          onRecordingComplete={handleRecordingComplete}
+                          onTranscriptUpdate={handleTranscriptUpdate}
+                          placeholder="Press the mic button to start recording your answer"
+                          maxDuration={90}
+                        />
+                        
+                        {/* Live Transcript and Next Button */}
+                        {currentAnswer && (
+                          <div className="mt-8 space-y-6">
+                            <div className="p-6 bg-gradient-to-br from-green-50 to-blue-50 rounded-3xl border-2 border-green-200 min-h-[120px] shadow-inner">
+                              <div className="flex items-center gap-3 mb-4">
+                                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                                  <CheckCircle className="w-4 h-4 text-white" />
+                                </div>
+                                <span className="font-semibold text-green-800">Live Transcript</span>
+                              </div>
+                              <p className="font-body text-green-800 text-lg whitespace-pre-wrap leading-relaxed">
+                                {currentAnswer || "Start speaking to see your response here..."}
+                              </p>
+                            </div>
+                            
+                            {/* Next Question Button */}
+                            <div className="text-center">
+                              <Button 
+                                onClick={handleNextQuestion}
+                                className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white px-10 py-4 rounded-2xl font-bold text-lg shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300"
+                                disabled={isLoading}
+                              >
+                                {getNextButtonText()}
+                              </Button>
+                              <p className="text-sm text-gray-600 mt-3">
+                                {isLastQuestion() 
+                                  ? "🎉 Click to complete your interview and get results" 
+                                  : "➡️ Click when you're satisfied with your answer"
+                                }
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                    
+                    {/* Error Display */}
+                    {error && (
+                      <Card className="relative bg-red-50/80 backdrop-blur-xl border-2 border-red-200 rounded-3xl shadow-xl mt-6 overflow-hidden">
+                        <CardContent className="p-6">
+                          <div className="p-6 bg-gradient-to-r from-red-100 to-pink-100 rounded-2xl border border-red-300">
+                            <p className="font-body text-red-800 text-lg flex items-start gap-3">
+                              <span className="text-2xl">⚠️</span>
+                              <span>{error}</span>
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                </div>
               </div>
             </section>
           )}
         </TabsContent>
 
         <TabsContent value="feedback" className="mt-0">
-          {currentStep === "feedback" && feedbackData && (
+          {currentStep === "feedback" && (
             <section className="section-padding fade-in">
-              <JudgePanel type="interview" data={feedbackData} />
-              <div className="flex justify-center gap-6 mt-12">
-                <Button onClick={() => setCurrentStep("setup")} className="btn-indigo">
-                  <RotateCcw className="w-5 h-5 mr-2" />
-                  Try Another Interview
-                </Button>
-                <Button variant="outline" className="btn-outline-indigo">
-                  <Save className="w-5 h-5 mr-2" />
-                  Save Attempt
-                </Button>
-                <Button variant="outline" className="btn-outline-indigo">
-                  <Download className="w-5 h-5 mr-2" />
-                  Download Report
-                </Button>
-              </div>
+              {evaluationLoading ? (
+                <div className="max-w-4xl mx-auto text-center">
+                  <Card className="card-world-class">
+                    <CardContent className="py-12">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                      <h3 className="font-heading text-2xl font-bold mb-2">Generating Your Evaluation...</h3>
+                      <p className="text-muted-foreground">
+                        Our AI is analyzing your responses and providing personalized feedback.
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : evaluationData ? (
+                <div className="max-w-6xl mx-auto">
+                  <EvaluationResults 
+                    evaluation={evaluationData} 
+                    interviewData={{
+                      company: interviewData.company || currentData.company || 'Test Company',
+                      role: interviewData.role || currentData.role || 'Software Developer',
+                      date: new Date().toLocaleDateString(),
+                      duration: '30 minutes',
+                      questionsAnswered: currentData.questionResponses?.length || 0,
+                      totalQuestions: currentData.fullQuestions?.length || 0
+                    }}
+                    onDownloadPDF={() => {
+                      toast({
+                        title: "PDF Download",
+                        description: "PDF download functionality coming soon!",
+                      });
+                    }}
+                    onRetakeInterview={() => setCurrentStep("setup")}
+                  />
+                  <div className="flex justify-center gap-6 mt-12">
+                    <Button onClick={() => setCurrentStep("setup")} className="btn-indigo">
+                      <RotateCcw className="w-5 h-5 mr-2" />
+                      Try Another Interview
+                    </Button>
+                    <Button variant="outline" className="btn-outline-indigo">
+                      <Save className="w-5 h-5 mr-2" />
+                      Save Attempt
+                    </Button>
+                    <Button variant="outline" className="btn-outline-indigo">
+                      <Download className="w-5 h-5 mr-2" />
+                      Download Report
+                    </Button>
+                  </div>
+                </div>
+              ) : feedbackData ? (
+                <div>
+                  <JudgePanel type="interview" data={feedbackData} />
+                  <div className="flex justify-center gap-6 mt-12">
+                    <Button onClick={() => setCurrentStep("setup")} className="btn-indigo">
+                      <RotateCcw className="w-5 h-5 mr-2" />
+                      Try Another Interview
+                    </Button>
+                    <Button variant="outline" className="btn-outline-indigo">
+                      <Save className="w-5 h-5 mr-2" />
+                      Save Attempt
+                    </Button>
+                    <Button variant="outline" className="btn-outline-indigo">
+                      <Download className="w-5 h-5 mr-2" />
+                      Download Report
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="max-w-4xl mx-auto text-center">
+                  <Card className="card-world-class">
+                    <CardContent className="py-12">
+                      <h3 className="font-heading text-2xl font-bold mb-4">Interview Completed!</h3>
+                      <p className="text-muted-foreground mb-6">
+                        Complete an interview to see your evaluation results here.
+                      </p>
+                      <Button onClick={() => setCurrentStep("setup")} className="btn-primary">
+                        Start New Interview
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
             </section>
           )}
         </TabsContent>

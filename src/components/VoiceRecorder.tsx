@@ -1,26 +1,68 @@
-import { useState, useRef } from "react";
+﻿import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Mic, Square, Play, Pause } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface VoiceRecorderProps {
   onRecordingComplete: (audioBlob: Blob, transcript: string) => void;
+  onTranscriptUpdate?: (transcript: string) => void;
   placeholder?: string;
   maxDuration?: number;
 }
 
 export const VoiceRecorder = ({ 
-  onRecordingComplete, 
+  onRecordingComplete,
+  onTranscriptUpdate,
   placeholder = "Press the mic to start recording",
-  maxDuration = 90 
+  maxDuration = 90
 }: VoiceRecorderProps) => {
   const [isRecording, setIsRecording] = useState(false);
   const [duration, setDuration] = useState(0);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [transcript, setTranscript] = useState("");
+  const [isTranscribing, setIsTranscribing] = useState(false);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const recognitionRef = useRef<any>(null);
+
+  // Initialize speech recognition
+  useEffect(() => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      
+      recognitionRef.current.continuous = true;
+      recognitionRef.current.interimResults = true;
+      recognitionRef.current.lang = 'en-US';
+      
+      recognitionRef.current.onresult = (event: any) => {
+        let finalTranscript = '';
+        let interimTranscript = '';
+        
+        // Process all results from the current recognition session
+        for (let i = 0; i < event.results.length; i++) {
+          const result = event.results[i];
+          if (result.isFinal) {
+            finalTranscript += result[0].transcript + ' ';
+          } else {
+            interimTranscript += result[0].transcript;
+          }
+        }
+        
+        // Only use the current session's transcript, don't accumulate from previous sessions
+        const currentTranscript = finalTranscript + interimTranscript;
+        setTranscript(currentTranscript);
+        onTranscriptUpdate?.(currentTranscript);
+      };
+      
+      recognitionRef.current.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+      };
+    }
+  }, [transcript, isRecording, onTranscriptUpdate]);
 
   const startRecording = async () => {
     try {
@@ -50,9 +92,7 @@ export const VoiceRecorder = ({
         const url = URL.createObjectURL(audioBlob);
         setAudioUrl(url);
         
-        // Mock transcript for now - replace with actual transcription API
-        const mockTranscript = "This is a sample transcript of the recorded audio.";
-        onRecordingComplete(audioBlob, mockTranscript);
+        onRecordingComplete(audioBlob, transcript);
         
         stream.getTracks().forEach(track => track.stop());
       };
@@ -60,6 +100,17 @@ export const VoiceRecorder = ({
       mediaRecorder.start();
       setIsRecording(true);
       setDuration(0);
+      setTranscript("");
+      
+      // Start speech recognition
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.start();
+          setIsTranscribing(true);
+        } catch (error) {
+          console.error('Error starting speech recognition:', error);
+        }
+      }
       
       intervalRef.current = setInterval(() => {
         setDuration(prev => {
@@ -80,21 +131,19 @@ export const VoiceRecorder = ({
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
       mediaRecorderRef.current.stop();
     }
+    
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+        setIsTranscribing(false);
+      } catch (error) {
+        console.error('Error stopping speech recognition:', error);
+      }
+    }
+    
     setIsRecording(false);
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
-    }
-  };
-
-  const playRecording = () => {
-    if (audioUrl && audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-        setIsPlaying(false);
-      } else {
-        audioRef.current.play();
-        setIsPlaying(true);
-      }
     }
   };
 
@@ -105,67 +154,60 @@ export const VoiceRecorder = ({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Recording Interface */}
-      <div className="text-center">
-        {!isRecording && !audioUrl && (
-          <p className="font-body text-muted-foreground mb-6">{placeholder}</p>
-        )}
-        
-        {/* Mic Button */}
-        <div className="flex justify-center mb-6">
-          <Button
-            onClick={isRecording ? stopRecording : startRecording}
-            className={`btn-mic ${isRecording ? 'recording' : ''}`}
-            disabled={duration >= maxDuration}
-          >
-            {isRecording ? <Square className="w-8 h-8" /> : <Mic className="w-8 h-8" />}
-          </Button>
-        </div>
-
-        {/* Timer */}
-        {(isRecording || audioUrl) && (
-          <div className="timer-display">
-            {formatTime(duration)} / {formatTime(maxDuration)}
-          </div>
-        )}
-
-        {/* Waveform Animation */}
-        {isRecording && (
-          <div className="waveform mt-6">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="waveform-bar" />
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Playback Controls */}
-      {audioUrl && (
-        <div className="card-world-class">
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="font-heading font-semibold text-lg mb-1">Recording Complete</h4>
-              <p className="font-body text-muted-foreground">Duration: {formatTime(duration)}</p>
-            </div>
+    <Card className="w-full max-w-md mx-auto">
+      <CardContent className="p-6">
+        <div className="flex flex-col items-center space-y-4">
+          {!isRecording && !audioUrl && (
+            <p className="text-sm text-gray-600 text-center">{placeholder}</p>
+          )}
+          
+          <div className="flex items-center space-x-4">
             <Button
-              onClick={playRecording}
-              variant="outline"
-              className="btn-outline-indigo"
+              size="lg"
+              variant={isRecording ? "destructive" : "default"}
+              onClick={isRecording ? stopRecording : startRecording}
+              className="rounded-full h-16 w-16"
             >
-              {isPlaying ? <Pause className="w-5 h-5 mr-2" /> : <Play className="w-5 h-5 mr-2" />}
-              {isPlaying ? 'Pause' : 'Play'}
+              {isRecording ? <Square size={24} /> : <Mic size={24} />}
             </Button>
           </div>
           
-          <audio
-            ref={audioRef}
-            src={audioUrl}
-            onEnded={() => setIsPlaying(false)}
-            className="hidden"
-          />
+          {(isRecording || audioUrl) && (
+            <div className="text-center">
+              <p className="text-sm font-medium">
+                {isRecording ? 'Recording...' : 'Recorded'} {formatTime(duration)}
+              </p>
+              {maxDuration && (
+                <p className="text-xs text-gray-500">
+                  Max: {formatTime(maxDuration)}
+                </p>
+              )}
+            </div>
+          )}
+          
+          {isTranscribing && (
+            <div className="text-center">
+              <p className="text-xs text-blue-600">Transcribing in real-time...</p>
+            </div>
+          )}
+          
+          {audioUrl && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setAudioUrl(null);
+                setTranscript("");
+                setDuration(0);
+                setIsPlaying(false);
+              }}
+              className="text-xs"
+            >
+              Record Again
+            </Button>
+          )}
         </div>
-      )}
-    </div>
+      </CardContent>
+    </Card>
   );
 };

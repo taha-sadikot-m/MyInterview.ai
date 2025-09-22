@@ -50,7 +50,7 @@
             },
             {
               "name": "Authorization",
-              "value": "Bearer YOUR_SUPABASE_SERVICE_ROLE_KEY"
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhaGNka2d2bXZqenZ2dXp5aWxwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NzQ1MTQwNCwiZXhwIjoyMDczMDI3NDA0fQ.hjqmoB1gGYoULNGPjEe5i988iUoeQkkxPNq1FFL5Ljk"
             },
             {
               "name": "Content-Type",
@@ -64,7 +64,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"user_id\": \"{{ $json.user_id }}\",\n  \"resume_id\": \"{{ $json.resume_id }}\",\n  \"job_description_id\": \"{{ $json.job_description_id }}\",\n  \"interview_type\": \"mock\",\n  \"status\": \"in_progress\",\n  \"started_at\": \"{{ new Date().toISOString() }}\"\n}"
+        "jsonBody": "={\n  \"user_id\": \"{{ $json.user_id }}\",\n  \"resume_id\": \"{{ $json.resume_id }}\",\n  \"job_description_id\": \"{{ $json.job_description_id }}\",\n  \"company_name\": \"{{ $json.company_name }}\",\n  \"role_title\": \"{{ $json.role_title }}\",\n  \"interview_type\": \"custom\",\n  \"status\": \"in_progress\",\n  \"total_questions\": {{ $json.interview_preferences.totalQuestions || 6 }},\n  \"questions_answered\": 0,\n  \"started_at\": \"{{ new Date().toISOString() }}\",\n  \"created_at\": \"{{ new Date().toISOString() }}\",\n  \"updated_at\": \"{{ new Date().toISOString() }}\"\n}"
       },
       "id": "b2c3d4e5-f6g7-8901-2345-6789abcdefgh",
       "name": "Create Interview Record",
@@ -105,7 +105,36 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "=https://sahcdkgvmvjzvvuzyilp.supabase.co/rest/v1/job_descriptions?id=eq.{{ $('Mock Interview Webhook').first().json.job_description_id }}",
+        "url": "    {
+      "parameters": {
+        "url": "=https://sahcdkgvmvjzvvuzyilp.supabase.co/rest/v1/resumes?id=eq.{{ $('Mock Interview Webhook').first().json.body.resume_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhaGNka2d2bXZqenZ2dXp5aWxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0NTE0MDQsImV4cCI6MjA3MzAyNzQwNH0.qqnJLTmd5a0JKUhfW8fm5W9cuN_lK3czdvnszJxdrWA"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhaGNka2d2bXZqenZ2dXp5aWxwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NzQ1MTQwNCwiZXhwIjoyMDczMDI3NDA0fQ.hjqmoB1gGYoULNGPjEe5i988iUoeQkkxPNq1FFL5Ljk"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "get-resume-data-node",
+      "name": "Get Resume Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -64,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://sahcdkgvmvjzvvuzyilp.supabase.co/rest/v1/job_descriptions?id=eq.{{ $('Mock Interview Webhook').first().json.body.job_description_id }}",",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -131,7 +160,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const resumeData = JSON.parse($('Get Resume Data').first().json.body)[0];\nconst jobData = JSON.parse($('Get Job Description').first().json.body)[0];\nconst interviewData = JSON.parse($('Create Interview Record').first().json.body)[0];\n\n// Parse extracted resume data\nconst extractedData = typeof resumeData.extracted_data === 'string' \n  ? JSON.parse(resumeData.extracted_data) \n  : resumeData.extracted_data;\n\n// Parse job requirements\nconst jobRequirements = typeof jobData.requirements === 'string'\n  ? JSON.parse(jobData.requirements)\n  : jobData.requirements;\n\nreturn [{\n  json: {\n    interview_id: interviewData.id,\n    candidate: {\n      name: extractedData.personal_info?.name || 'Candidate',\n      experience: extractedData.experience || [],\n      skills: extractedData.skills || {},\n      education: extractedData.education || []\n    },\n    job: {\n      title: jobData.job_title,\n      company: jobData.company_name,\n      requirements: jobRequirements,\n      description: jobData.job_description\n    },\n    interview_type: 'behavioral_technical',\n    duration_minutes: 30\n  }\n}];"
+        "jsCode": "const resumeData = JSON.parse($('Get Resume Data').first().json.body)[0];\nconst jobData = JSON.parse($('Get Job Description').first().json.body)[0];\nconst interviewData = JSON.parse($('Create Interview Record').first().json.body)[0];\n\n// Parse extracted resume data\nconst extractedData = typeof resumeData.extracted_data === 'string' \n  ? JSON.parse(resumeData.extracted_data) \n  : resumeData.extracted_data;\n\n// Parse job requirements (if exists)\nconst jobRequirements = jobData.requirements || [];\nconst skillsRequired = jobData.skills_required || [];\n\nreturn [{\n  json: {\n    interview_id: interviewData.id,\n    candidate: {\n      name: extractedData.personal_info?.name || 'Candidate',\n      experience: extractedData.experience || [],\n      skills: extractedData.skills || {},\n      education: extractedData.education || [],\n      projects: extractedData.projects || []\n    },\n    job: {\n      title: jobData.role_title,\n      company: jobData.company_name,\n      description: jobData.description,\n      requirements: jobRequirements,\n      skills_required: skillsRequired,\n      experience_level: jobData.experience_level || 'intermediate'\n    },\n    interview_type: 'behavioral_technical',\n    duration_minutes: 30,\n    preferences: {\n      total_questions: 6,\n      focus_areas: ['technical', 'behavioral', 'situational'],\n      difficulty_level: 'intermediate'\n    }\n  }\n}];"
       },
       "id": "e5f6g7h8-i9j0-1234-5678-9abcdefghijk",
       "name": "Prepare Interview Context",

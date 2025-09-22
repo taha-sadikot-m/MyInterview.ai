@@ -37,6 +37,7 @@ const InterviewHistory = ({ userId }: InterviewHistoryProps) => {
   const [chatHistory, setChatHistory] = useState<InterviewChat[]>([]);
   const [loading, setLoading] = useState(true);
   const [chatLoading, setChatLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchInterviews();
@@ -44,34 +45,153 @@ const InterviewHistory = ({ userId }: InterviewHistoryProps) => {
 
   const fetchInterviews = async () => {
     try {
+      console.log('[InterviewHistory] Fetching interviews for user:', userId);
+      
       const { data, error } = await supabase
         .from('mock_interviews')
         .select('*')
         .eq('user_id', userId)
         .order('started_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('[InterviewHistory] Database error:', error);
+        setError(`Database error: ${error.message}`);
+        throw error;
+      }
+      
+      console.log('[InterviewHistory] Fetched interviews:', data?.length || 0, 'records');
       setInterviews(data || []);
+      
+      if (data && data.length === 0) {
+        console.log('[InterviewHistory] No interviews found for user:', userId);
+      }
     } catch (error) {
-      console.error('Error fetching interviews:', error);
+      console.error('[InterviewHistory] Error fetching interviews:', error);
+      setError(`Failed to load interviews: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const createSampleData = async () => {
+    try {
+      console.log('[InterviewHistory] Creating sample interview data...');
+      
+      const sampleInterview = {
+        user_id: userId,
+        company_name: 'Sample Company',
+        role_title: 'Software Engineer',
+        interview_type: 'predefined' as const,
+        status: 'completed' as const,
+        total_questions: 5,
+        questions_answered: 5,
+        overall_score: 7.5,
+        competency_scores: {
+          Communication: 8,
+          StructuredThinkingSTAR: 7,
+          TechnicalFundamentals: 8,
+          ProblemSolving: 7,
+          CultureOwnership: 8,
+          Coachability: 7
+        },
+        strengths: ['Clear communication', 'Strong technical background'],
+        improvements: ['Use STAR framework more consistently'],
+        feedback_summary: 'Good performance overall with room for improvement in structured thinking.',
+        questions: [
+          { question: 'Tell me about yourself', follow_up: [] },
+          { question: 'Why do you want to work here?', follow_up: [] }
+        ],
+        started_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+        completed_at: new Date(Date.now() - 86000000).toISOString(), // ~24 hours ago
+      };
+
+      const { data, error } = await supabase
+        .from('mock_interviews')
+        .insert([sampleInterview])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('[InterviewHistory] Error creating sample data:', error);
+        throw error;
+      }
+
+      console.log('[InterviewHistory] Sample data created:', data);
+      // Refresh the interviews list
+      fetchInterviews();
+      
+    } catch (error) {
+      console.error('[InterviewHistory] Failed to create sample data:', error);
     }
   };
 
   const fetchChatHistory = async (interviewId: string) => {
     setChatLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('interview_chats')
-        .select('*')
+      console.log('[InterviewHistory] Fetching interview conversation for interview:', interviewId);
+      
+      // Fetch questions and responses from the interview tables
+      const { data: questionsData, error: questionsError } = await supabase
+        .from('interview_questions')
+        .select(`
+          id,
+          question_text,
+          order_index,
+          interview_responses (
+            id,
+            response_text,
+            responded_at
+          )
+        `)
         .eq('mock_interview_id', interviewId)
-        .order('message_order', { ascending: true });
+        .order('order_index', { ascending: true });
 
-      if (error) throw error;
-      setChatHistory(data || []);
+      if (questionsError) {
+        console.error('[InterviewHistory] Questions fetch error:', questionsError);
+        throw questionsError;
+      }
+      
+      console.log('[InterviewHistory] Fetched questions and responses:', questionsData?.length || 0, 'records');
+      
+      // Convert to chat format for display
+      const chatMessages: any[] = [];
+      let messageOrder = 1;
+      
+      if (questionsData) {
+        questionsData.forEach((question: any) => {
+          // Add question message
+          chatMessages.push({
+            id: `q-${question.id}`,
+            mock_interview_id: interviewId,
+            message_type: 'question',
+            sender: 'ai',
+            content: question.question_text,
+            message_order: messageOrder++,
+            metadata: null,
+            created_at: new Date().toISOString()
+          });
+          
+          // Add response message if exists
+          if (question.interview_responses && question.interview_responses.length > 0) {
+            const response = question.interview_responses[0]; // Take first response
+            chatMessages.push({
+              id: `r-${response.id}`,
+              mock_interview_id: interviewId,
+              message_type: 'response',
+              sender: 'user',
+              content: response.response_text,
+              message_order: messageOrder++,
+              metadata: null,
+              created_at: response.responded_at || new Date().toISOString()
+            });
+          }
+        });
+      }
+      
+      setChatHistory(chatMessages);
     } catch (error) {
-      console.error('Error fetching chat history:', error);
+      console.error('[InterviewHistory] Error fetching interview conversation:', error);
+      setChatHistory([]);
     } finally {
       setChatLoading(false);
     }
@@ -133,6 +253,24 @@ const InterviewHistory = ({ userId }: InterviewHistoryProps) => {
     );
   }
 
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <h2 className="font-heading text-3xl font-bold mb-4">Interview History</h2>
+        </div>
+        <Card className="text-center p-12">
+          <CardContent>
+            <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h3 className="font-heading text-xl font-semibold mb-2">Unable to Load History</h3>
+            <p className="text-muted-foreground mb-6">{error}</p>
+            <Button onClick={fetchInterviews} className="btn-primary">Try Again</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -150,7 +288,12 @@ const InterviewHistory = ({ userId }: InterviewHistoryProps) => {
             <p className="text-muted-foreground mb-6">
               Start your first mock interview to see your history here
             </p>
-            <Button className="btn-primary">Start New Interview</Button>
+            <div className="flex gap-4 justify-center">
+              <Button className="btn-primary">Start New Interview</Button>
+              <Button variant="outline" onClick={createSampleData}>
+                Create Sample Data (Debug)
+              </Button>
+            </div>
           </CardContent>
         </Card>
       ) : (

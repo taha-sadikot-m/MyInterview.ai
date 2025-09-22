@@ -206,6 +206,8 @@ export type Database = {
           strengths: string[] | null
           improvements: string[] | null
           feedback_summary: string | null
+          questions: Json | null
+          error_message: string | null
           started_at: string
           completed_at: string | null
           created_at: string
@@ -227,6 +229,8 @@ export type Database = {
           strengths?: string[] | null
           improvements?: string[] | null
           feedback_summary?: string | null
+          questions?: Json | null
+          error_message?: string | null
           started_at?: string
           completed_at?: string | null
           created_at?: string
@@ -248,6 +252,8 @@ export type Database = {
           strengths?: string[] | null
           improvements?: string[] | null
           feedback_summary?: string | null
+          questions?: Json | null
+          error_message?: string | null
           started_at?: string
           completed_at?: string | null
           created_at?: string

@@ -121,6 +121,68 @@ This directory contains the N8N workflow JSON files for the mock interview syste
 }
 ```
 
+### 3. Interview Evaluation Workflow (`interview-evaluation-workflow.json`)
+
+**Purpose**: Evaluates completed interview responses and generates comprehensive feedback using AI.
+
+**Webhook Endpoint**: `/webhook/evaluate-interview`
+
+**Input**:
+```json
+{
+  "interviewId": "uuid",
+  "userId": "uuid", 
+  "companyName": "Company Name",
+  "roleTitle": "Job Role",
+  "questionsAndAnswers": [
+    {
+      "question": "Tell me about yourself",
+      "answer": "I am a software developer...",
+      "followUps": [
+        {
+          "question": "What's your biggest strength?",
+          "answer": "My problem-solving ability..."
+        }
+      ]
+    }
+  ],
+  "totalQuestions": 5,
+  "questionsAnswered": 5
+}
+```
+
+**Process**:
+1. Validates input data and structures evaluation request
+2. Sends questions and answers to OpenAI GPT-4 for comprehensive evaluation
+3. Evaluates across 6 competencies (Communication, STAR thinking, Technical, Problem-solving, Culture, Coachability)
+4. Parses AI response and validates evaluation structure
+5. Updates mock_interviews table with evaluation results
+6. Returns comprehensive evaluation with scores, feedback, and action plans
+
+**Output**:
+```json
+{
+  "success": true,
+  "evaluation": {
+    "overall_score": 7.5,
+    "competency_scores": {
+      "Communication": 8,
+      "StructuredThinkingSTAR": 7,
+      "TechnicalFundamentals": 7,
+      "ProblemSolving": 8,
+      "CultureOwnership": 7,
+      "Coachability": 8
+    },
+    "strengths": ["Clear communication", "Good problem-solving"],
+    "improvements": ["Use STAR method", "Provide specific examples"],
+    "feedback_summary": "Overall strong performance...",
+    "star_examples": [...],
+    "action_plan": [...],
+    "detailed_feedback": [...]
+  }
+}
+```
+
 ## Setup Instructions
 
 ### 1. Import Workflows to N8N

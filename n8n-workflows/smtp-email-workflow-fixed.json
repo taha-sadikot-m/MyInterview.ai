@@ -1,0 +1,373 @@
+{
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dd84ddb461bd7350e2f644a1cd58b83c9a6031a36291a13a1fef0ba9e564fd3c"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "send-email",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "124818b8-ca0f-49a9-8285-fc16c286a5f0",
+      "name": "Email Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [-848, -176],
+      "webhookId": "generic-email-webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "validate-to",
+              "leftValue": "={{ $json.to }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "isNotEmpty"
+              }
+            },
+            {
+              "id": "validate-subject",
+              "leftValue": "={{ $json.subject }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "isNotEmpty"
+              }
+            },
+            {
+              "id": "validate-body",
+              "leftValue": "={{ $json.body }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "isNotEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "41c5bb08-8fbe-47f2-b975-b41cb408eb52",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [-624, -176]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "sender-name",
+              "name": "senderName",
+              "value": "Voice Vanguard Vault",
+              "type": "string"
+            },
+            {
+              "id": "to-email",
+              "name": "toEmail",
+              "value": "={{ $json.to }}",
+              "type": "string"
+            },
+            {
+              "id": "email-subject",
+              "name": "subject",
+              "value": "={{ $json.subject }}",
+              "type": "string"
+            },
+            {
+              "id": "email-body",
+              "name": "body",
+              "value": "={{ $json.body }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d38c0ab1-4e58-4844-8375-a12ff262d937",
+      "name": "Prepare Email Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [-400, -256]
+    },
+    {
+      "parameters": {
+        "fromEmail": "taha.sadikot.m@gmail.com",
+        "toEmail": "={{ $json.toEmail }}",
+        "subject": "={{ $json.subject }}",
+        "html": "={{ $json.body }}",
+        "options": {
+          "allowUnauthorizedCerts": false,
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [-176, -256],
+      "id": "5725ae11-7871-497b-877a-b47d078a07bc",
+      "name": "Send Email",
+      "credentials": {
+        "smtp": {
+          "id": "2pArGB2SXzEA2DKT",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "success-status",
+              "name": "success",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "success-message",
+              "name": "message",
+              "value": "Email sent successfully via SMTP",
+              "type": "string"
+            },
+            {
+              "id": "recipient",
+              "name": "recipient",
+              "value": "={{ $('Prepare Email Data').item.json.toEmail }}",
+              "type": "string"
+            },
+            {
+              "id": "sent-at",
+              "name": "sentAt",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "email-subject",
+              "name": "subject",
+              "value": "={{ $('Prepare Email Data').item.json.subject }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1a98e203-41bf-4ace-a861-2bbc5c408cc8",
+      "name": "Success Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [48, -256]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "error-status",
+              "name": "success",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "error-message",
+              "name": "error",
+              "value": "Missing required fields: to, subject, and body are required",
+              "type": "string"
+            },
+            {
+              "id": "error-code",
+              "name": "errorCode",
+              "value": "VALIDATION_ERROR",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b3660773-0ffb-4b89-925a-66b06fbbc233",
+      "name": "Validation Error Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [-400, -96]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "smtp-error-status",
+              "name": "success",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "smtp-error-message",
+              "name": "error",
+              "value": "Failed to send email via SMTP: {{ $json.error?.message || 'Unknown SMTP error' }}",
+              "type": "string"
+            },
+            {
+              "id": "smtp-error-code",
+              "name": "errorCode",
+              "value": "SMTP_ERROR",
+              "type": "string"
+            },
+            {
+              "id": "smtp-error-details",
+              "name": "details",
+              "value": "={{ $json }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0a70fa68-d3ce-43a7-80c3-685f88f54c74",
+      "name": "SMTP Error Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [-176, -96]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "POST, OPTIONS"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type, Authorization"
+              }
+            ]
+          }
+        }
+      },
+      "id": "0753c463-d072-484d-b16d-3ca83007019c",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [272, -176]
+    }
+  ],
+  "connections": {
+    "Email Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Input": {
+      "main": [
+        [
+          {
+            "node": "Prepare Email Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Validation Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Email Data": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ],
+      "error": [
+        [
+          {
+            "node": "SMTP Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Success Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validation Error Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SMTP Error Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {}
+}
