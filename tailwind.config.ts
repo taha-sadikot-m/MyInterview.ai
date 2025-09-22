@@ -61,19 +61,6 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        // Custom Interview Page Colors
-        interview: {
-          'royal-blue': '#1E3A8A',
-          'teal': '#14B8A6',
-          'sky-blue': '#0EA5E9',
-          'emerald': '#10B981',
-          'section-gray': '#F9FAFB',
-          'divider': '#E5E7EB',
-          'charcoal': '#374151',
-          'success': '#22C55E',
-          'warning': '#F59E0B',
-          'error': '#EF4444',
-        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -81,11 +68,11 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        brand: ['League Spartan', 'Montserrat', 'sans-serif'],
-        heading: ['League Spartan', 'Montserrat', 'sans-serif'],
-        subheading: ['League Spartan', 'Poppins', 'sans-serif'],
-        body: ['Inter', 'Roboto', 'sans-serif'],
-        ui: ['Inter', 'Poppins', 'sans-serif'],
+        brand: ['Montserrat', 'sans-serif'],
+        heading: ['Montserrat', 'sans-serif'],
+        subheading: ['Poppins', 'sans-serif'],
+        body: ['Inter', 'sans-serif'],
+        ui: ['Poppins', 'sans-serif'],
         fancy: ['Playfair Display', 'serif'],
       },
       keyframes: {

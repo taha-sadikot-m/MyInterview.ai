@@ -1393,9 +1393,7 @@ const MyInterviewWorld = () => {
             </h2>
             
             {/* Enhanced subtext */}
-            <p className="text-xl md:text-2xl lg:text-3xl text-gray-600 mb-12 max-w-4xl mx-auto leading-relaxed">
-              Register details those instructions Start interview
-            </p>
+            
             
             {/* Modern action buttons */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
@@ -1463,16 +1461,7 @@ const MyInterviewWorld = () => {
             
             {/* Secondary action buttons */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-4xl mx-auto mt-8">
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="group bg-white/60 backdrop-blur-xl border border-white/30 hover:border-blue-300 text-gray-600 hover:text-blue-600 text-base px-6 py-4 rounded-xl font-medium shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-xl group-hover:scale-110 transition-transform">🎙️</span>
-                  <span>Record Video Answer</span>
-                </div>
-              </Button>
+              
               
               <Button 
                 variant="outline" 
@@ -1569,63 +1558,6 @@ const MyInterviewWorld = () => {
           setCurrentStep(value as Step);
         }} className="w-full">
           <TabsContent value="setup" className="mt-0">
-        {/* Modern How It Works Section - Full Width Background Fixed */}
-        <section className="relative w-full bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 py-20">
-          {/* Full-width background with decorative elements */}
-          <div className="absolute inset-0 overflow-hidden">
-            {/* Floating orbs for visual interest */}
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-pulse"></div>
-            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-purple-400/20 to-blue-400/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
-            
-            {/* Grid pattern overlay */}
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDYwIDAgTCAwIDAgMCA2MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjEiIG9wYWNpdHk9IjAuMDMiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-40"></div>
-          </div>
-          
-          {/* Content container */}
-          <div className="w-full px-4 relative z-10">
-            <div className="text-center mb-20">
-              <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-xl border border-white/20 rounded-full px-6 py-2 mb-8 shadow-lg">
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium text-gray-700">Step-by-Step Process</span>
-              </div>
-              <h2 className="font-heading text-6xl md:text-7xl font-black bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent leading-tight mb-6">
-                How Interview World Works
-              </h2>
-              <p className="font-body text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-                A comprehensive 4-step process to master your interview skills and land your dream job.
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
-              {HOW_IT_WORKS.map((step, index) => (
-                <Card key={index} className="group relative bg-white/80 backdrop-blur-xl border-2 border-white/20 rounded-3xl shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-500 overflow-hidden">
-                  {/* Animated background gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 group-hover:from-blue-500/10 group-hover:to-purple-500/10 transition-all duration-500"></div>
-                  
-                  <CardHeader className="relative z-10 text-center p-8">
-                    {/* Modern icon container */}
-                    <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl group-hover:scale-110 transition-transform duration-300">
-                      <step.icon className="w-10 h-10 text-white" />
-                    </div>
-                    
-                    {/* Step number badge */}
-                    <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-                      <span className="font-ui font-bold text-white text-lg">{step.number}</span>
-                    </div>
-                    
-                    <CardTitle className="font-heading text-2xl font-bold text-gray-900 mb-4 group-hover:text-blue-700 transition-colors">
-                      {step.title}
-                    </CardTitle>
-                    <CardDescription className="font-body text-gray-600 text-lg leading-relaxed">
-                      {step.description}
-                    </CardDescription>
-                  </CardHeader>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* Modern Interview Setup Flow */}
         {currentStep === "setup" && (
           <section className="section-padding fade-in">
@@ -1981,6 +1913,63 @@ const MyInterviewWorld = () => {
             </Card>
           </section>
         )}
+
+        {/* How Interview World Works section moved below Start Mock Interview */}
+        <section className="relative w-full bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 py-20">
+          {/* Full-width background with decorative elements */}
+          <div className="absolute inset-0 overflow-hidden">
+            {/* Floating orbs for visual interest */}
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-pulse"></div>
+            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-purple-400/20 to-blue-400/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+            
+            {/* Grid pattern overlay */}
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDYwIDAgTCAwIDAgMCA2MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjEiIG9wYWNpdHk9IjAuMDMiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-40"></div>
+          </div>
+          
+          {/* Content container */}
+          <div className="w-full px-4 relative z-10">
+            <div className="text-center mb-20">
+              <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-xl border border-white/20 rounded-full px-6 py-2 mb-8 shadow-lg">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium text-gray-700">Step-by-Step Process</span>
+              </div>
+              <h2 className="font-heading text-6xl md:text-7xl font-black bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent leading-tight mb-6">
+                How Interview World Works
+              </h2>
+              <p className="font-body text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
+                A comprehensive 4-step process to master your interview skills and land your dream job.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
+              {HOW_IT_WORKS.map((step, index) => (
+                <Card key={index} className="group relative bg-white/80 backdrop-blur-xl border-2 border-white/20 rounded-3xl shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-500 overflow-hidden">
+                  {/* Animated background gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 group-hover:from-blue-500/10 group-hover:to-purple-500/10 transition-all duration-500"></div>
+                  
+                  <CardHeader className="relative z-10 text-center p-8">
+                    {/* Modern icon container */}
+                    <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl group-hover:scale-110 transition-transform duration-300">
+                      <step.icon className="w-10 h-10 text-white" />
+                    </div>
+                    
+                    {/* Step number badge */}
+                    <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                      <span className="font-ui font-bold text-white text-lg">{step.number}</span>
+                    </div>
+                    
+                    <CardTitle className="font-heading text-2xl font-bold text-gray-900 mb-4 group-hover:text-blue-700 transition-colors">
+                      {step.title}
+                    </CardTitle>
+                    <CardDescription className="font-body text-gray-600 text-lg leading-relaxed">
+                      {step.description}
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
 
         {feedbackLoading && (
           <section className="section-padding fade-in">
