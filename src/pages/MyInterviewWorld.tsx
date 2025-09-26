@@ -1227,6 +1227,74 @@ const MyInterviewWorld = () => {
     }
   };
 
+  // Handler to terminate interview early
+  const handleEndInterview = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Save current responses
+      const updatedResponses = [...currentData.questionResponses];
+      
+      // Calculate totals
+      let totalQuestionsAsked = 0;
+      let totalQuestionsAnswered = 0;
+      updatedResponses.forEach(response => {
+        totalQuestionsAsked += 1;
+        totalQuestionsAnswered += 1;
+        totalQuestionsAsked += response.followUpResponses.length;
+        totalQuestionsAnswered += response.followUpResponses.length;
+      });
+
+      // Update interview status to abandoned (since terminated is not allowed)
+      if (currentInterviewId) {
+        try {
+          const { error: updateError } = await supabase
+            .from('mock_interviews')
+            .update({
+              status: 'abandoned',
+              completed_at: new Date().toISOString(),
+              total_questions: totalQuestionsAsked,
+              questions_answered: totalQuestionsAnswered,
+              overall_score: null,
+            })
+            .eq('id', currentInterviewId);
+
+          if (updateError) {
+            console.error('[Interview] Error updating interview status:', updateError);
+          } else {
+            console.log('[Interview] Interview status updated to abandoned.');
+          }
+        } catch (error) {
+          console.error('[Interview] Error updating interview:', error);
+        }
+      }
+
+      // Save responses
+      await saveInterviewResponses(updatedResponses);
+      
+      // Set interview data for feedback
+      setInterviewData(prev => ({
+        ...prev,
+        answers: updatedResponses.map(r => r.answer),
+        questionResponses: updatedResponses
+      }));
+
+      // Transition to feedback/results step
+      setCurrentStep('feedback');
+      
+      toast({
+        title: 'Interview Ended',
+        description: 'Your interview was terminated early. Partial results will be shown.',
+        variant: 'destructive'
+      });
+    } catch (error) {
+      console.error('[Interview] Error ending interview:', error);
+      setError('Failed to end interview. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleGenerateFeedback = () => {
     setFeedbackLoading(true);
     
@@ -2075,6 +2143,17 @@ const MyInterviewWorld = () => {
                         <span className="text-sm font-bold text-blue-600">{Math.round(progress)}% Complete</span>
                       </div>
                     </div>
+
+                    {/* End Interview Button */}
+                    <div className="flex justify-center mt-6">
+                      <Button
+                        onClick={handleEndInterview}
+                        className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white px-6 py-3 rounded-xl font-semibold text-sm shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                        disabled={isLoading}
+                      >
+                        End Interview
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
 
@@ -2306,6 +2385,6 @@ const MyInterviewWorld = () => {
       </div>
     </div>
   );
-};
+}
 
 export default MyInterviewWorld;
